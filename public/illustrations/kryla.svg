@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none"><style>.l{fill:none;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.t{fill:none;stroke:#0B2B6B;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.a{fill:#EAF1FB;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.b{fill:#C7D8F2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.m{fill:#DADDE2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.d{fill:#0B1E3F;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.c{fill:#0054C6;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.w{fill:#FFFFFF;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.h{fill:#0B2B6B}.s{fill:#001026;opacity:.08}</style>
+<ellipse class="s" cx="120" cy="216" rx="82" ry="7"/>
+<path class="a" d="M40 108 Q40 82 64 79 L198 68 Q207 68 207 78 L207 152 Q207 160 199 160 L169 160 A41 41 0 0 0 87 160 L55 160 Q40 160 40 150 Z"/>
+<path class="t" d="M163 158 A35 35 0 0 0 93 158"/>
+<path class="t" d="M50 116 Q130 100 200 93"/>
+<path class="t" d="M52 134 Q96 126 128 126"/>
+<rect class="m" x="82" y="71" width="16" height="8" rx="2"/>
+<circle class="h" cx="90" cy="75" r="2"/>
+<rect class="m" x="126" y="68" width="16" height="8" rx="2"/>
+<circle class="h" cx="134" cy="72" r="2"/>
+<rect class="m" x="170" y="65" width="16" height="8" rx="2"/>
+<circle class="h" cx="178" cy="69" r="2"/>
+</svg>

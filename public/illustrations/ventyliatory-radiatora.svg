@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none"><style>.l{fill:none;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.t{fill:none;stroke:#0B2B6B;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.a{fill:#EAF1FB;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.b{fill:#C7D8F2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.m{fill:#DADDE2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.d{fill:#0B1E3F;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.c{fill:#0054C6;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.w{fill:#FFFFFF;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.h{fill:#0B2B6B}.s{fill:#001026;opacity:.08}</style>
+<ellipse class="s" cx="120" cy="216" rx="80" ry="7"/>
+<rect class="a" x="30" y="26" width="180" height="176" rx="22"/>
+<circle class="w" cx="120" cy="114" r="82"/>
+<circle class="h" cx="48" cy="44" r="5"/>
+<circle class="h" cx="192" cy="44" r="5"/>
+<circle class="h" cx="48" cy="184" r="5"/>
+<circle class="h" cx="192" cy="184" r="5"/>
+<circle class="t" cx="120" cy="114" r="80"/>
+<path class="b" transform="rotate(0 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/><path class="b" transform="rotate(51.4 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/><path class="b" transform="rotate(102.9 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/><path class="b" transform="rotate(154.3 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/><path class="b" transform="rotate(205.7 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/><path class="b" transform="rotate(257.1 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/><path class="b" transform="rotate(308.6 120 114)" d="M112 100 C108 72 116 52 138 46 C150 50 153 62 147 72 C139 86 131 93 125 100 Z"/>
+<circle class="t" cx="120" cy="114" r="27"/>
+<circle class="m" cx="120" cy="114" r="20"/>
+<circle class="b" cx="120" cy="114" r="11"/>
+<circle class="h" cx="120" cy="114" r="4"/>
+</svg>

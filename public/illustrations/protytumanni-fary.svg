@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none"><style>.l{fill:none;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.t{fill:none;stroke:#0B2B6B;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.a{fill:#EAF1FB;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.b{fill:#C7D8F2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.m{fill:#DADDE2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.d{fill:#0B1E3F;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.c{fill:#0054C6;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.w{fill:#FFFFFF;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.h{fill:#0B2B6B}.s{fill:#001026;opacity:.08}</style>
+<ellipse class="s" cx="120" cy="216" rx="72" ry="7"/>
+<rect class="m" x="54" y="152" width="132" height="20" rx="8"/>
+<path class="m" d="M60 96 L75 94 L79 154 L63 154 Z"/>
+<path class="m" d="M180 96 L165 94 L161 154 L177 154 Z"/>
+<rect class="m" x="112" y="144" width="16" height="14"/>
+<circle class="m" cx="120" cy="96" r="54"/>
+<circle class="a" cx="120" cy="96" r="44"/>
+<circle class="t" cx="120" cy="96" r="34"/>
+<circle class="t" cx="120" cy="96" r="23"/>
+<circle class="b" cx="120" cy="96" r="13"/>
+<circle class="w" cx="114" cy="90" r="4"/>
+<circle class="h" cx="66" cy="96" r="5"/>
+<circle class="h" cx="174" cy="96" r="5"/>
+<circle class="h" cx="120" cy="161" r="4"/>
+</svg>

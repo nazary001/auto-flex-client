@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" fill="none"><style>.l{fill:none;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.t{fill:none;stroke:#0B2B6B;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.a{fill:#EAF1FB;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.b{fill:#C7D8F2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.m{fill:#DADDE2;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.d{fill:#0B1E3F;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.c{fill:#0054C6;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.w{fill:#FFFFFF;stroke:#0B2B6B;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.h{fill:#0B2B6B}.s{fill:#001026;opacity:.08}</style>
+<ellipse class="s" cx="120" cy="216" rx="84" ry="7"/>
+<path class="a" d="M26 150 L26 108 Q26 92 44 90 L196 90 Q214 92 214 108 L214 150 Q214 156 206 156 L34 156 Q26 156 26 150 Z"/>
+<rect class="w" x="98" y="97" width="44" height="19" rx="3"/>
+<path class="d" d="M84 120 L156 120 L164 150 L76 150 Z"/>
+<rect class="b" x="84" y="124" width="72" height="4" rx="2"/>
+<rect class="b" x="82" y="131" width="76" height="4" rx="2"/>
+<rect class="b" x="80" y="138" width="80" height="4" rx="2"/>
+<rect class="b" x="78" y="145" width="84" height="4" rx="2"/>
+<circle class="d" cx="54" cy="127" r="12"/>
+<circle class="b" cx="54" cy="127" r="6"/>
+<circle class="h" cx="54" cy="127" r="2.5"/>
+<circle class="d" cx="186" cy="127" r="12"/>
+<circle class="b" cx="186" cy="127" r="6"/>
+<circle class="h" cx="186" cy="127" r="2.5"/>
+<rect class="d" x="33" y="104" width="7" height="30" rx="3"/>
+<rect class="d" x="200" y="104" width="7" height="30" rx="3"/>
+<path class="t" d="M34 153 Q120 159 206 153"/>
+</svg>
