@@ -28,7 +28,7 @@ import {
 import { createCustomer, getCustomerByPhone, updateCustomer } from "@/lib/server/db/repos/customers";
 
 /*
- * Storefront account: registration (phone + e-mail + password), sign-in with the phone or the
+ * Storefront account: registration (name + phone + e-mail + password), sign-in with the phone or the
  * e-mail, sign-out, profile and password changes. Used with useActionState in the account forms.
  */
 
@@ -89,6 +89,8 @@ async function signIn(db: Awaited<ReturnType<typeof getDb>>, accountId: string):
 // ── registration ────────────────────────────────────────────
 
 const registerSchema = z.object({
+  firstName: z.string().trim().min(2, "Вкажіть ім'я.").max(60, "Задовге ім'я."),
+  lastName: z.string().trim().min(2, "Вкажіть прізвище.").max(60, "Задовге прізвище."),
   phone: z.string().trim().min(1, "Вкажіть номер телефону.").max(30, PHONE_FORMAT),
   email: z.string().trim().min(1, "Вкажіть електронну адресу.").max(120, EMAIL_FORMAT),
   password: z.string().min(1, "Придумайте пароль.").max(200, "Пароль задовгий."),
@@ -97,17 +99,29 @@ const registerSchema = z.object({
 });
 
 export async function registerAction(_prev: AccountFormState | undefined, formData: FormData): Promise<AccountFormState> {
-  const values = { phone: text(formData, "phone"), email: text(formData, "email") };
+  const values = {
+    firstName: text(formData, "firstName"),
+    lastName: text(formData, "lastName"),
+    phone: text(formData, "phone"),
+    email: text(formData, "email"),
+  };
   const parsed = registerSchema.safeParse({
+    firstName: values.firstName,
+    lastName: values.lastName,
     phone: values.phone,
     email: values.email,
     password: text(formData, "password"),
     confirm: text(formData, "confirm"),
     next: formData.get("next") ?? undefined,
   });
-  if (!parsed.success) return { fieldErrors: issuesToFieldErrors(parsed.error, ["phone", "email", "password", "confirm"]), values };
+  if (!parsed.success) {
+    return {
+      fieldErrors: issuesToFieldErrors(parsed.error, ["firstName", "lastName", "phone", "email", "password", "confirm"]),
+      values,
+    };
+  }
 
-  const { phone, email, password, confirm, next } = parsed.data;
+  const { firstName, lastName, phone, email, password, confirm, next } = parsed.data;
   const fieldErrors: NonNullable<AccountFormState["fieldErrors"]> = {};
   if (!isValidUaPhone(phone)) fieldErrors.phone = PHONE_FORMAT;
   if (!isValidEmail(email)) fieldErrors.email = EMAIL_FORMAT;
@@ -130,15 +144,15 @@ export async function registerAction(_prev: AccountFormState | undefined, formDa
   if (conflict === "email") return { fieldErrors: { email: "Цю адресу вже зареєстровано — увійдіть або вкажіть іншу." }, values };
 
   // The CRM customer created from earlier orders with this phone becomes the account's profile,
-  // so its order history shows up in the cabinet right away.
+  // so its order history shows up in the cabinet right away. The name typed at registration wins.
   let customer = await getCustomerByPhone(db, normalizedPhone);
   if (customer && (await getAccountByCustomerId(db, customer.id))) {
     return { fieldErrors: { phone: "Цей номер уже зареєстровано — увійдіть." }, values };
   }
   if (!customer) {
-    customer = await createCustomer(db, { phone: normalizedPhone, firstName: "", lastName: "", email: normalizedEmail });
-  } else if (!customer.email) {
-    await updateCustomer(db, customer.id, { email: normalizedEmail });
+    customer = await createCustomer(db, { phone: normalizedPhone, firstName, lastName, email: normalizedEmail });
+  } else {
+    await updateCustomer(db, customer.id, { firstName, lastName, email: customer.email || normalizedEmail });
   }
 
   let accountId: string;

@@ -21,6 +21,33 @@ export function RegisterForm({ next }: { next?: string }) {
       <input type="hidden" name="next" value={next ?? ""} />
       {state?.error && <FormAlert tone="danger">{state.error}</FormAlert>}
 
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Ім'я" htmlFor={`${id}-firstName`} error={errors.firstName} required>
+          <Input
+            id={`${id}-firstName`}
+            name="firstName"
+            autoComplete="given-name"
+            maxLength={60}
+            required
+            defaultValue={state?.values?.firstName ?? ""}
+            aria-invalid={errors.firstName ? true : undefined}
+            aria-describedby={errors.firstName ? `${id}-firstName-note` : undefined}
+          />
+        </Field>
+        <Field label="Прізвище" htmlFor={`${id}-lastName`} error={errors.lastName} required>
+          <Input
+            id={`${id}-lastName`}
+            name="lastName"
+            autoComplete="family-name"
+            maxLength={60}
+            required
+            defaultValue={state?.values?.lastName ?? ""}
+            aria-invalid={errors.lastName ? true : undefined}
+            aria-describedby={errors.lastName ? `${id}-lastName-note` : undefined}
+          />
+        </Field>
+      </div>
+
       <Field label="Номер телефону" htmlFor={`${id}-phone`} error={errors.phone} required>
         <PhoneInput
           id={`${id}-phone`}
