@@ -7,8 +7,8 @@ export const site = {
   tagline: "Автоаксесуари та тюнінг для вашого авто",
   description:
     "Інтернет-магазин автоаксесуарів і тюнінгу AutoFlex: дефлектори, килимки, хром-накладки та багажники на дах, підібрані під конкретну модель авто. Доставка по Україні за 1–3 дні.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://autoflex.ua",
-  domainLabel: "www.autoflex.ua",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://avtoflex.com",
+  domainLabel: "avtoflex.com",
   phone: { label: "+38 (097) 123-45-67", href: "tel:+380971234567" },
   email: "info@autoflex.ua",
   schedule: [
