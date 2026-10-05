@@ -57,7 +57,7 @@ export function BottomTabBar() {
                 <span className="relative">
                   <Icon aria-hidden className="size-6" strokeWidth={active ? 2 : 1.75} />
                   {count > 0 && (
-                    <span className="tabular absolute -top-1.5 -right-2.5 grid h-[17px] min-w-[17px] place-content-center rounded-full bg-brand-600 px-1 text-[10px] leading-none font-bold text-white ring-2 ring-white">
+                    <span key={count} className="animate-bump tabular absolute -top-1.5 -right-2.5 grid h-[17px] min-w-[17px] place-content-center rounded-full bg-brand-600 px-1 text-[10px] leading-none font-bold text-white ring-2 ring-white">
                       {count > 99 ? "99+" : count}
                     </span>
                   )}

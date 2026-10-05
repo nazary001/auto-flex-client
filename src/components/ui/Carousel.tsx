@@ -53,7 +53,7 @@ export function Carousel({ children, label, itemClassName = carouselItem.four, c
     "absolute top-[38%] z-20 hidden size-11 -translate-y-1/2 place-content-center rounded-full border border-line-soft bg-white text-ink shadow-card transition-[opacity,color] hover:text-brand-600 disabled:pointer-events-none disabled:opacity-0 md:grid";
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("reveal relative", className)}>
       <div
         ref={trackRef}
         onScroll={measure}

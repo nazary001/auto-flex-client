@@ -106,7 +106,7 @@ export function VehicleSelector({ makes, categories, variant = "bar", initial, c
           <option value="">{hero ? (make ? "Усі моделі" : "Спочатку оберіть марку") : "Модель"}</option>
           {make?.models.map((m) => (
             <option key={m.slug} value={m.slug}>
-              {m.name} ({m.years})
+              {m.years ? `${m.name} (${m.years})` : m.name}
             </option>
           ))}
         </select>

@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
-import { toCardData } from "@/lib/card";
-import { getProductById } from "@/lib/catalog";
-import type { ProductCardData } from "@/lib/types";
+import { toCardList } from "@/lib/card";
+import { getProductsByIds } from "@/lib/catalog";
 
 const MAX_IDS = 60;
 
@@ -9,17 +8,21 @@ const MAX_IDS = 60;
  * Card data for products known to the browser only by id (favourites, recently viewed):
  * GET /api/products?ids=a,b,c → { products } in the requested order; unknown ids are skipped.
  */
-export function GET(request: NextRequest) {
-  const ids = (request.nextUrl.searchParams.get("ids") ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-    .slice(0, MAX_IDS);
-
-  const products: ProductCardData[] = [];
-  for (const id of new Set(ids)) {
-    const product = getProductById(id);
-    if (product) products.push(toCardData(product));
+export async function GET(request: NextRequest) {
+  const ids = [
+    ...new Set(
+      (request.nextUrl.searchParams.get("ids") ?? "")
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean)
+        .slice(0, MAX_IDS),
+    ),
+  ];
+  try {
+    const products = await getProductsByIds(ids);
+    return Response.json({ products: toCardList(products) });
+  } catch (error) {
+    console.error("[AutoFlex] /api/products", error);
+    return Response.json({ products: [] }, { status: 503 });
   }
-  return Response.json({ products });
 }

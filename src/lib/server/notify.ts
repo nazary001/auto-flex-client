@@ -5,8 +5,9 @@
  *   TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID — message to a Telegram chat
  *   ORDER_WEBHOOK_URL                     — JSON POST to a CRM / automation webhook
  *
- * Without a channel the message is printed to the server log in development,
- * and the request FAILS in production so that no order is silently lost.
+ * Orders and requests are stored in the database first, so a missing or failing channel
+ * never loses them: `notifyManagers` resolves to false when nothing was delivered and
+ * throws only when every configured channel failed.
  */
 
 const TELEGRAM_LIMIT = 4000;
@@ -35,12 +36,26 @@ async function sendWebhook(url: string, payload: unknown): Promise<void> {
   if (!response.ok) throw new Error(`Webhook responded with ${response.status}`);
 }
 
+export interface NotifyChannels {
+  telegram: boolean;
+  webhook: boolean;
+}
+
+/** Which channels are configured in the environment (shown in the admin settings) */
+export function configuredChannels(): NotifyChannels {
+  return {
+    telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID),
+    webhook: Boolean(process.env.ORDER_WEBHOOK_URL),
+  };
+}
+
 /**
  * @param text human-readable message (Telegram)
  * @param data structured copy of the same event (webhook)
- * @throws when no channel accepted the message
+ * @returns true when at least one channel accepted the message, false when none is configured
+ * @throws when every configured channel failed
  */
-export async function notifyManagers(text: string, data: Record<string, unknown>): Promise<void> {
+export async function notifyManagers(text: string, data: Record<string, unknown>): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chatId = process.env.TELEGRAM_CHAT_ID;
   const webhook = process.env.ORDER_WEBHOOK_URL;
@@ -50,19 +65,17 @@ export async function notifyManagers(text: string, data: Record<string, unknown>
   if (webhook) deliveries.push(sendWebhook(webhook, { text, ...data }));
 
   if (deliveries.length === 0) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "No notification channel is configured: set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID or ORDER_WEBHOOK_URL",
-      );
+    if (process.env.NODE_ENV !== "production") {
+      console.info(`[AutoFlex] Канал сповіщень не налаштовано — повідомлення для менеджера:\n${text}\n`);
     }
-    console.info(`[AutoFlex] Канал сповіщень не налаштовано — повідомлення для менеджера:\n${text}\n`);
-    return;
+    return false;
   }
 
   const results = await Promise.allSettled(deliveries);
   const failures = results.filter((r) => r.status === "rejected");
   failures.forEach((failure) => console.error("[AutoFlex] Канал сповіщень не спрацював:", failure.reason));
   if (failures.length === results.length) throw new Error("Every notification channel failed");
+  return true;
 }
 
 /** Trims, collapses whitespace and caps the length of user-supplied text */

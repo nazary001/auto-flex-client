@@ -4,14 +4,21 @@ import { cn } from "@/lib/cn";
 import { getMakes, getModels, getTopCategories, modelYears } from "@/lib/catalog";
 
 /** Data for <VehicleSelector>: every make with its models, plus the top-level catalog groups */
-export function getSelectorData(): { makes: SelectorMake[]; categories: { slug: string; name: string }[] } {
+export async function getSelectorData(): Promise<{ makes: SelectorMake[]; categories: { slug: string; name: string }[] }> {
+  const [makes, topCategories] = await Promise.all([getMakes(), getTopCategories()]);
+  const selectorMakes = await Promise.all(
+    makes.map(async (make) => {
+      const models = await getModels(make.id);
+      return {
+        slug: make.slug,
+        name: make.name,
+        models: models.map((model) => ({ slug: model.slug, name: model.name, years: modelYears(model) })),
+      };
+    }),
+  );
   return {
-    makes: getMakes().map((make) => ({
-      slug: make.slug,
-      name: make.name,
-      models: getModels(make.id).map((model) => ({ slug: model.slug, name: model.name, years: modelYears(model) })),
-    })),
-    categories: getTopCategories().map((c) => ({ slug: c.slug, name: c.name })),
+    makes: selectorMakes,
+    categories: topCategories.map((c) => ({ slug: c.slug, name: c.name })),
   };
 }
 
@@ -24,8 +31,8 @@ interface VehicleBarProps {
  * Slim «Підбір за авто» strip for the top of catalog pages (Server Component).
  * On phones it collapses into a single toggle row.
  */
-export function VehicleBar({ initial, className }: VehicleBarProps) {
-  const { makes, categories } = getSelectorData();
+export async function VehicleBar({ initial, className }: VehicleBarProps) {
+  const { makes, categories } = await getSelectorData();
   return (
     <section aria-label="Підбір за авто" className={cn("border-b border-line-soft bg-mist", className)}>
       <div className="container-page flex items-center gap-4 py-2.5 md:py-3">

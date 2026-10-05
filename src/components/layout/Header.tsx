@@ -1,9 +1,16 @@
 import Link from "next/link";
-import { Clock, Phone, User } from "lucide-react";
+import { Clock, Phone } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { SocialIcon } from "@/components/icons";
-import { getCategoryProductCount, getMakes, getSubcategories, getTopCategories } from "@/lib/catalog";
+import {
+  getCategoryProductCount,
+  getMakeProductCount,
+  getMakes,
+  getSubcategories,
+  getTopCategories,
+} from "@/lib/catalog";
 import { site, topNav } from "@/lib/site";
+import { AccountLink } from "./AccountLink";
 import { BackToTop } from "./BackToTop";
 import { BottomTabBar } from "./BottomTabBar";
 import { CallbackButton } from "./CallbackButton";
@@ -16,24 +23,38 @@ import { MobileNav } from "./MobileNav";
 import type { NavData } from "./nav-data";
 
 /** Reads the catalog on the server and hands plain data to the client islands. */
-function getNavData(): NavData {
-  const groups = getTopCategories().map((group) => ({
-    slug: group.slug,
-    name: group.name,
-    icon: group.icon,
-    illustration: group.illustration,
-    description: group.description,
-    count: getCategoryProductCount(group.id),
-    subs: getSubcategories(group.id).map((sub) => ({ slug: sub.slug, name: sub.name })),
-  }));
-  const popularMakes = getMakes()
-    .filter((make) => make.popular)
-    .map((make) => ({ slug: make.slug, name: make.name }));
+async function getNavData(): Promise<NavData> {
+  const [topCategories, makes] = await Promise.all([getTopCategories(), getMakes()]);
+
+  const groups = await Promise.all(
+    topCategories.map(async (group) => {
+      const [count, subs] = await Promise.all([getCategoryProductCount(group.id), getSubcategories(group.id)]);
+      return {
+        slug: group.slug,
+        name: group.name,
+        icon: group.icon,
+        illustration: group.illustration,
+        description: group.description,
+        count,
+        subs: subs.map((sub) => ({ slug: sub.slug, name: sub.name })),
+      };
+    }),
+  );
+
+  // Popular makes: those flagged `popular`, otherwise the 12 makes with the most products.
+  let popular = makes.filter((make) => make.popular);
+  if (popular.length === 0) {
+    const counted = await Promise.all(makes.map(async (make) => ({ make, count: await getMakeProductCount(make.id) })));
+    counted.sort((a, b) => b.count - a.count);
+    popular = counted.slice(0, 12).map((row) => row.make);
+  }
+  const popularMakes = popular.map((make) => ({ slug: make.slug, name: make.name }));
+
   return { groups, popularMakes };
 }
 
-export function Header() {
-  const nav = getNavData();
+export async function Header() {
+  const nav = await getNavData();
 
   return (
     <>
@@ -80,7 +101,7 @@ export function Header() {
       </div>
 
       {/* Main header — sticky */}
-      <header className="sticky top-0 z-40 border-b border-line-soft bg-white">
+      <header className="header-elevate sticky top-0 z-40 border-b border-line-soft bg-white">
         {/* Desktop */}
         <div className="container-page hidden lg:block">
           <div className="relative flex h-[76px] items-center gap-4 xl:gap-6">
@@ -108,13 +129,7 @@ export function Header() {
             <span aria-hidden className="hidden h-10 w-px bg-line-soft xl:block" />
 
             <nav aria-label="Акаунт" className="flex shrink-0 items-center gap-1">
-              <Link
-                href="/account"
-                className="group flex w-[4.25rem] flex-col items-center gap-1 rounded-btn px-1 py-1.5 text-[11px] font-medium text-ink-2 transition-colors hover:bg-mist hover:text-brand-700"
-              >
-                <User aria-hidden className="size-6" strokeWidth={1.75} />
-                Кабінет
-              </Link>
+              <AccountLink />
               <FavoritesLink />
               <MiniCart />
             </nav>

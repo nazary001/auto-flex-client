@@ -17,7 +17,7 @@ interface ProductGridProps {
 
 export function ProductGrid({ products, columns = 4, className }: ProductGridProps) {
   return (
-    <ul className={cn("grid gap-3 sm:gap-4", columnClass[columns], className)}>
+    <ul className={cn("reveal-children grid gap-3 sm:gap-4", columnClass[columns], className)}>
       {products.map((product) => (
         <li key={product.id}>
           <ProductCard product={product} />

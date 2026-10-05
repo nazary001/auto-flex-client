@@ -19,7 +19,7 @@ export function BlogTeasers({ articles }: { articles: Article[] }) {
           action={{ label: "Усі статті", href: "/blog" }}
           className="mb-6"
         />
-        <ul className={cn("grid gap-5", cols)}>
+        <ul className={cn("reveal-children grid gap-5", cols)}>
           {articles.map((article) => (
             <li key={article.slug} className="flex">
               <ArticleCard article={article} className="w-full" />

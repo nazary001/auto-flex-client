@@ -12,15 +12,19 @@ interface CategorySidebarProps {
 }
 
 /** Catalog tree: 12 groups, each expandable to its subcategories. Works without JavaScript. */
-export function CategorySidebar({ activeSlug, title = "Категорії", className }: CategorySidebarProps) {
-  const active = activeSlug ? getCategory(activeSlug) : undefined;
+export async function CategorySidebar({ activeSlug, title = "Категорії", className }: CategorySidebarProps) {
+  const active = activeSlug ? await getCategory(activeSlug) : undefined;
   const activeGroupId = active ? (active.parentId ?? active.id) : undefined;
+  const groups = await getTopCategories();
+  const groupsWithSubs = await Promise.all(
+    groups.map(async (group) => ({ group, subs: await getSubcategories(group.id) })),
+  );
 
   return (
     <nav aria-label={title} className={cn("card overflow-hidden", className)}>
       <p className="bg-navy-900 px-4 py-3 text-[15px] font-semibold text-white">{title}</p>
       <ul className="divide-y divide-line-soft">
-        {getTopCategories().map((group) => {
+        {groupsWithSubs.map(({ group, subs }) => {
           const open = group.id === activeGroupId;
           return (
             <li key={group.id}>
@@ -51,7 +55,7 @@ export function CategorySidebar({ activeSlug, title = "Категорії", clas
                       Усі товари групи
                     </Link>
                   </li>
-                  {getSubcategories(group.id).map((sub) => (
+                  {subs.map((sub) => (
                     <li key={sub.id}>
                       <Link
                         href={`/catalog/${sub.slug}`}

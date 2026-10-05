@@ -19,6 +19,9 @@ export function PhoneInput({ value, onChange, className, onFocus, onBlur, ...pro
     let digits = raw.replace(/\D/g, "");
     // Backspace over a mask character: drop the digit before it instead
     if (raw.length < value.length && digits === value.replace(/\D/g, "")) digits = digits.slice(0, -1);
+    // the field opens with "+38 (0"; a number typed with its own leading 0 (or 380) must not double it
+    if (digits.startsWith("00")) digits = digits.slice(1);
+    else if (digits.startsWith("0380")) digits = digits.slice(1);
     onChange(formatPhone(digits));
   }
 

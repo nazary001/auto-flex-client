@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Exo_2, Inter } from "next/font/google";
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
-import { Toaster } from "@/components/ui/Toaster";
 import { site } from "@/lib/site";
 import "./globals.css";
+
+/*
+ * Root layout shared by the storefront `(store)` and the back office `(admin)`:
+ * only the document shell, fonts and base metadata live here. The storefront
+ * chrome (header, footer, toasts) is in src/app/(store)/layout.tsx, the admin
+ * shell in src/app/(admin)/admin/(shell)/layout.tsx.
+ */
 
 // Brandbook typography: Inter for everything, Exo 2 ExtraBold Italic for accents
 const inter = Inter({
@@ -46,21 +50,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="uk" className={`${inter.variable} ${exo2.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-btn focus:bg-white focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-brand-700 focus:shadow-pop"
-        >
-          Перейти до вмісту
-        </a>
-        <Header />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <Footer />
-        <Toaster />
-      </body>
+    <html
+      lang="uk"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${exo2.variable} h-full antialiased`}
+    >
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

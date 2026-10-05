@@ -64,6 +64,12 @@ export interface ProductOptionValue {
   label: string;
   /** Added to the base price, UAH */
   priceDelta: number;
+  /** Availability of this variant when it differs from the product (supplier variants) */
+  stock?: StockStatus;
+  /** Photo of this variant, shown when it is selected */
+  image?: string;
+  /** Supplier article of this variant */
+  sku?: string;
 }
 
 export interface ProductOption {
@@ -109,6 +115,16 @@ export interface Product {
   createdAt: string;
   /** Higher — more popular */
   popularity: number;
+  /** Denormalised for cards and search (always set on catalog documents) */
+  brandName?: string;
+  categoryName?: string;
+  /** Illustration key of the category, used when a product has no photo */
+  illustration?: string;
+  /** Top-level category id */
+  groupId?: string;
+  /** Vehicle the supplier lists the product for, e.g. "Citroen" / "C-3" */
+  markName?: string;
+  modelName?: string;
 }
 
 export interface Review {

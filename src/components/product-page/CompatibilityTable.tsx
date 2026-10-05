@@ -66,7 +66,7 @@ export function CompatibilityTable({ rows, universal }: CompatibilityTableProps)
                   {row.modelName}
                 </Link>
               </td>
-              <td className="tabular px-4 py-2.5 align-top whitespace-nowrap text-ink-2">{row.years}</td>
+              <td className="tabular px-4 py-2.5 align-top whitespace-nowrap text-ink-2">{row.years || "—"}</td>
               {hasNotes && <td className="px-4 py-2.5 align-top text-ink-2">{row.note ?? "—"}</td>}
             </tr>
           ))}

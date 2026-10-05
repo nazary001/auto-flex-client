@@ -22,7 +22,7 @@ export function Promotions({ promos }: { promos: Promo[] }) {
       <div className="grid gap-4">
         <PromoBanner promo={first} variant="wide" />
         {rest.length > 0 && (
-          <ul className={cn("grid gap-4", restCols)}>
+          <ul className={cn("reveal-children grid gap-4", restCols)}>
             {rest.map((promo) => (
               <li key={promo.slug} className="flex">
                 <PromoBanner promo={promo} variant="tile" className="w-full" />

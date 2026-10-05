@@ -16,7 +16,7 @@ export function FavoritesLink() {
       <span className="relative">
         <Heart aria-hidden className="size-6" strokeWidth={1.75} />
         {count > 0 && (
-          <span className="tabular absolute -top-2 -right-2.5 grid h-[18px] min-w-[18px] place-content-center rounded-full bg-brand-600 px-1 text-[11px] leading-none font-bold text-white ring-2 ring-white">
+          <span key={count} className="animate-bump tabular absolute -top-2 -right-2.5 grid h-[18px] min-w-[18px] place-content-center rounded-full bg-brand-600 px-1 text-[11px] leading-none font-bold text-white ring-2 ring-white">
             {count > 99 ? "99+" : count}
           </span>
         )}

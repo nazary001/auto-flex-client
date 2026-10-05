@@ -22,7 +22,7 @@ export function MakeTiles({ items }: { items: MakeTile[] }) {
           action={{ label: "Усі марки", href: "/avto" }}
           className="mb-6"
         />
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        <ul className="reveal-children grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {items.map((make) => (
             <li key={make.slug}>
               <Link

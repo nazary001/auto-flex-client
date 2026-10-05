@@ -82,7 +82,7 @@ export function Tabs({ items, defaultId, className, aside }: TabsProps) {
           aria-labelledby={`${baseId}-tab-${item.id}`}
           hidden={item.id !== active}
           tabIndex={-1}
-          className="pt-6"
+          className="animate-fade-in pt-6"
         >
           {item.content}
         </div>

@@ -37,7 +37,7 @@ export function Modal({ open, onClose, title, description, children, className }
         if (event.target === ref.current) onClose();
       }}
       className={cn(
-        "w-[calc(100vw-2rem)] rounded-2xl bg-white p-0 text-ink shadow-pop backdrop:bg-navy-950/60 backdrop:backdrop-blur-[2px] open:animate-fade-in",
+        "w-[calc(100vw-2rem)] rounded-2xl bg-white p-0 text-ink shadow-pop backdrop:bg-navy-950/60 backdrop:backdrop-blur-[2px] open:animate-pop-in",
         className ?? "max-w-md",
       )}
     >

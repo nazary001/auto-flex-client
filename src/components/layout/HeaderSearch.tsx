@@ -215,7 +215,7 @@ export function HeaderSearch({ instanceId, className }: HeaderSearchProps) {
           id={listboxId}
           role="listbox"
           aria-label="Підказки пошуку"
-          className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-card border border-line-soft bg-white shadow-pop"
+          className="absolute inset-x-0 top-full z-20 mt-2 overflow-hidden rounded-card border border-line-soft bg-white shadow-pop animate-drop-in"
         >
           {status === "loading" && (
             <p className="flex items-center gap-2.5 px-4 py-5 text-sm text-ink-3">

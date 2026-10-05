@@ -5,6 +5,7 @@ import { ProductImage } from "@/components/product/ProductImage";
 import { ProductBadgeLabel } from "@/components/ui/Badge";
 import { cn } from "@/lib/cn";
 import type { ProductBadge } from "@/lib/types";
+import { useVariantImage } from "./variant-image";
 
 interface ProductGalleryProps {
   images: string[];
@@ -16,9 +17,21 @@ interface ProductGalleryProps {
 
 /** Product gallery: large main image with badges; thumbnails switch the main image when there are several photos. */
 export function ProductGallery({ images, illustration, alt, badges, discount }: ProductGalleryProps) {
+  const variantImage = useVariantImage();
+  // When the chosen variant has its own photo, show it first (prepended when not already in the set).
+  const gallery = variantImage && !images.includes(variantImage) ? [variantImage, ...images] : images;
   const [active, setActive] = useState(0);
-  const hasThumbs = images.length > 1;
-  const mainImage = images[active];
+
+  // Bring the variant photo into view when the selection changes (adjust state during render).
+  const [shownVariant, setShownVariant] = useState(variantImage);
+  if (shownVariant !== variantImage) {
+    setShownVariant(variantImage);
+    const index = variantImage ? gallery.indexOf(variantImage) : 0;
+    setActive(index < 0 ? 0 : index);
+  }
+
+  const hasThumbs = gallery.length > 1;
+  const mainImage = gallery[Math.min(active, gallery.length - 1)];
 
   return (
     <div className="grid gap-3">
@@ -35,7 +48,7 @@ export function ProductGallery({ images, illustration, alt, badges, discount }: 
 
       {hasThumbs && (
         <ul className="scrollbar-none -mx-1 flex gap-2 overflow-x-auto px-1">
-          {images.map((image, index) => (
+          {gallery.map((image, index) => (
             <li key={image} className="shrink-0">
               <button
                 type="button"

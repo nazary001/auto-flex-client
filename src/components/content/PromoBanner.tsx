@@ -44,7 +44,7 @@ export function PromoBanner({ promo, variant = "tile", className }: PromoBannerP
   return (
     <article
       className={cn(
-        "relative isolate flex overflow-hidden rounded-card",
+        "group relative isolate flex overflow-hidden rounded-card",
         wide ? "min-h-56 items-center p-6 sm:p-9 lg:p-11" : "min-h-52 p-6",
         tone.box,
         className,
@@ -80,7 +80,13 @@ export function PromoBanner({ promo, variant = "tile", className }: PromoBannerP
           wide ? "right-6 size-44 sm:right-10 sm:size-52 lg:right-16 max-sm:hidden" : "-right-6 size-40",
         )}
       >
-        <Image src={`/illustrations/${promo.illustration}.svg`} alt="" fill unoptimized className="object-contain p-5" />
+        <Image
+          src={`/illustrations/${promo.illustration}.svg`}
+          alt=""
+          fill
+          unoptimized
+          className="object-contain p-5 transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-rotate-6"
+        />
       </div>
     </article>
   );

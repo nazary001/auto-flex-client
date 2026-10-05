@@ -10,6 +10,7 @@ import { Button, buttonClass } from "@/components/ui/Button";
 import { Checkbox, Field, Input, Textarea } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PhoneInput } from "@/components/ui/PhoneInput";
+import { useAccountSummary } from "@/lib/account/client";
 import { postJson } from "@/lib/api";
 import { formatPhone, isValidUaPhone, normalizePhone } from "@/lib/format";
 import { useAccount, useCart, useVehicle, type LocalOrder } from "@/lib/store";
@@ -32,12 +33,28 @@ function addressRequiredMessage(method: DeliveryMethod): string {
   }
 }
 
-export function CheckoutForm() {
+interface CheckoutFormProps {
+  deliveryMethods?: DeliveryMethod[];
+  paymentMethods?: PaymentMethod[];
+  methodNotes?: Partial<Record<string, string>>;
+}
+
+export function CheckoutForm({ deliveryMethods, paymentMethods, methodNotes }: CheckoutFormProps) {
+  const availableDelivery =
+    deliveryMethods && deliveryMethods.length
+      ? deliveryOptions.filter((option) => deliveryMethods.includes(option.value))
+      : deliveryOptions;
+  const availablePayment =
+    paymentMethods && paymentMethods.length
+      ? paymentOptions.filter((option) => paymentMethods.includes(option.value))
+      : paymentOptions;
+
   const id = useId();
   const router = useRouter();
   const { hydrated, items, count, total, clear } = useCart();
   const { profile, setProfile, addOrder } = useAccount();
   const { vehicle } = useVehicle();
+  const { summary: account } = useAccountSummary();
 
   // null = untouched → fall back to the saved profile / remembered vehicle
   const [firstName, setFirstName] = useState<string | null>(null);
@@ -47,8 +64,8 @@ export function CheckoutForm() {
   const [city, setCity] = useState<string | null>(null);
   const [address, setAddress] = useState<string | null>(null);
   const [vehicleText, setVehicleText] = useState<string | null>(null);
-  const [method, setMethod] = useState<DeliveryMethod>("np_branch");
-  const [payment, setPayment] = useState<PaymentMethod>("cod");
+  const [method, setMethod] = useState<DeliveryMethod>(availableDelivery[0]?.value ?? "np_branch");
+  const [payment, setPayment] = useState<PaymentMethod>(availablePayment[0]?.value ?? "cod");
   const [comment, setComment] = useState("");
   const [doNotCall, setDoNotCall] = useState(false);
 
@@ -58,12 +75,12 @@ export function CheckoutForm() {
   const [serverError, setServerError] = useState("");
 
   const v = {
-    firstName: firstName ?? profile.firstName,
-    lastName: lastName ?? profile.lastName,
-    phone: phone ?? (profile.phone ? formatPhone(profile.phone) : ""),
-    email: email ?? profile.email,
-    city: city ?? profile.city,
-    address: address ?? profile.address,
+    firstName: firstName ?? (profile.firstName || account?.firstName || ""),
+    lastName: lastName ?? (profile.lastName || account?.lastName || ""),
+    phone: phone ?? formatPhone(profile.phone || account?.phone || ""),
+    email: email ?? (profile.email || account?.email || ""),
+    city: city ?? (profile.city || account?.city || ""),
+    address: address ?? (profile.address || account?.address || ""),
     vehicle: vehicleText ?? vehicle?.label ?? "",
   };
 
@@ -265,7 +282,7 @@ export function CheckoutForm() {
         {/* 2 — Delivery */}
         <Section step={2} icon={<MapPin aria-hidden strokeWidth={1.75} />} title="Доставка" headingId={`${id}-delivery`}>
           <div role="radiogroup" aria-labelledby={`${id}-delivery`} className="grid gap-2.5 sm:grid-cols-2">
-            {deliveryOptions.map((option) => (
+            {availableDelivery.map((option) => (
               <label
                 key={option.value}
                 className={`flex cursor-pointer gap-3 rounded-card border p-3.5 transition-colors ${
@@ -286,6 +303,11 @@ export function CheckoutForm() {
                 <span className="min-w-0">
                   <span className="block text-[15px] font-semibold text-ink">{option.label}</span>
                   <span className="mt-0.5 block text-[13px] text-ink-3">{option.hint}</span>
+                  {methodNotes?.[option.value] && (
+                    <span className="mt-0.5 block text-[13px] font-medium text-brand-700">
+                      {methodNotes?.[option.value]}
+                    </span>
+                  )}
                 </span>
               </label>
             ))}
@@ -330,7 +352,7 @@ export function CheckoutForm() {
         {/* 3 — Payment */}
         <Section step={3} icon={<CreditCard aria-hidden strokeWidth={1.75} />} title="Оплата" headingId={`${id}-payment`}>
           <div role="radiogroup" aria-labelledby={`${id}-payment`} className="grid gap-2.5">
-            {paymentOptions.map((option) => (
+            {availablePayment.map((option) => (
               <label
                 key={option.value}
                 className={`flex cursor-pointer gap-3 rounded-card border p-3.5 transition-colors ${
@@ -348,6 +370,11 @@ export function CheckoutForm() {
                 <span className="min-w-0">
                   <span className="block text-[15px] font-semibold text-ink">{option.label}</span>
                   <span className="mt-0.5 block text-[13px] text-ink-3">{option.description}</span>
+                  {methodNotes?.[option.value] && (
+                    <span className="mt-0.5 block text-[13px] font-medium text-brand-700">
+                      {methodNotes?.[option.value]}
+                    </span>
+                  )}
                 </span>
               </label>
             ))}

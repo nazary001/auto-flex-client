@@ -100,7 +100,7 @@ export function CatalogMenu({ data }: { data: NavData }) {
           ref={panelRef}
           id={panelId}
           onClick={onPanelClick}
-          className="absolute inset-x-0 top-full z-40 mt-2 flex max-h-[72vh] flex-col overflow-hidden rounded-card border border-line-soft bg-white shadow-pop animate-fade-in"
+          className="absolute inset-x-0 top-full z-40 mt-2 flex max-h-[72vh] flex-col overflow-hidden rounded-card border border-line-soft bg-white shadow-pop animate-drop-in"
         >
             <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(232px,268px)_1fr]">
               {/* Groups */}

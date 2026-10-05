@@ -1,0 +1,21 @@
+/* Barrel for the admin UI kit. Prefer `import { Card, DataTable } from "@/components/admin/ui"`. */
+export { ActionButton } from "./ActionButton";
+export { Alert } from "./Alert";
+export { AutoSubmit } from "./AutoSubmit";
+export { Card } from "./Card";
+export { ConfirmDialog } from "./ConfirmDialog";
+export { CopyText } from "./CopyText";
+export { DataTable, type Column } from "./DataTable";
+export { DateTime } from "./DateTime";
+export { DescriptionList } from "./DescriptionList";
+export { Dropdown, type DropdownItem } from "./Dropdown";
+export { FilterBar, FilterSelect, FilterInput, FilterDateRange } from "./FilterBar";
+export { KpiTile } from "./KpiTile";
+export { Money } from "./Money";
+export { PageHeader } from "./PageHeader";
+export { PhoneLink } from "./PhoneLink";
+export { Pill, type PillTone } from "./Pill";
+export { SegmentedLinks } from "./SegmentedLinks";
+export { StatusBadge, type StatusKind } from "./StatusBadge";
+export { SubmitButton } from "./SubmitButton";
+export { Timeline, type TimelineItem } from "./Timeline";

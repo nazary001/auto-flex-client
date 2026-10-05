@@ -18,7 +18,7 @@ import { getBrand, getCategory, getMakeById, getModelById, queryProducts } from 
 import { cn } from "@/lib/cn";
 import { formatNumber } from "@/lib/format";
 import { site } from "@/lib/site";
-import type { ProductQuery } from "@/lib/types";
+import type { Brand, ProductCardData, ProductQuery } from "@/lib/types";
 
 export interface ProductListingProps {
   /** Route path used to build filter/sort/pagination hrefs, e.g. "/catalog/halmivni-kolodky" */
@@ -48,7 +48,7 @@ export interface ProductListingProps {
  * so it is correct when server-rendered from a direct URL, and updates the URL
  * client-side (without losing scroll) when a filter changes.
  */
-export function ProductListing({
+export async function ProductListing({
   pathname,
   searchParams,
   base = {},
@@ -64,9 +64,18 @@ export function ProductListing({
 
   const state = parseListingParams(searchParams);
 
-  const brandIds = state.brandSlugs.map((slug) => getBrand(slug)?.id).filter((id): id is string => Boolean(id));
-  const selectedCategory =
-    showCategories && state.categorySlug && getCategory(state.categorySlug) ? state.categorySlug : undefined;
+  // Resolve brand slugs and the selected category once — reused for the query, facets and chips.
+  const [brandEntries, categoryObj] = await Promise.all([
+    Promise.all(state.brandSlugs.map(async (slug) => [slug, await getBrand(slug)] as const)),
+    showCategories && state.categorySlug ? getCategory(state.categorySlug) : Promise.resolve(undefined),
+  ]);
+  const brandBySlug = new Map<string, Brand>();
+  for (const [slug, brand] of brandEntries) if (brand) brandBySlug.set(slug, brand);
+
+  const brandIds = state.brandSlugs
+    .map((slug) => brandBySlug.get(slug)?.id)
+    .filter((id): id is string => Boolean(id));
+  const selectedCategory = showCategories && state.categorySlug && categoryObj ? state.categorySlug : undefined;
 
   const query: ProductQuery = {
     ...base,
@@ -83,32 +92,51 @@ export function ProductListing({
     perPage: PER_PAGE,
   };
 
-  const result = queryProducts(query);
+  // Category facet counts are computed without the user-selected category so the list stays stable
+  // and the buyer can switch between categories. All independent reads run in parallel.
+  const [result, make, categoryFacetsResult] = await Promise.all([
+    queryProducts(query),
+    query.makeId ? getMakeById(query.makeId) : Promise.resolve(undefined),
+    showCategories ? queryProducts({ ...query, categoryId: base.categoryId, page: 1 }) : Promise.resolve(null),
+  ]);
+  const categoryFacets = categoryFacetsResult ? categoryFacetsResult.facets.categories : [];
 
-  // Category facet counts are computed without the user-selected category so the
-  // list stays stable and the buyer can switch between categories.
-  const categoryFacets = showCategories
-    ? queryProducts({ ...query, categoryId: base.categoryId, page: 1 }).facets.categories
-    : [];
-
-  // A product is named after its primary vehicle, which may be a platform sibling of the
-  // car being browsed — so on vehicle listings each card says which of the buyer's models it fits.
-  const make = query.makeId ? getMakeById(query.makeId) : undefined;
-  const items = result.items.map((product) => {
-    const card = toCardData(product);
-    if (!make) return card;
-    const models = product.fitment
-      .filter((f) => f.makeId === make.id && (!query.modelId || f.modelId === query.modelId))
-      .map((f) => getModelById(f.modelId)?.name)
-      .filter((name): name is string => Boolean(name));
-    return models.length > 0 ? { ...card, fitLabel: `${make.name} ${[...new Set(models)].join(", ")}` } : card;
-  });
+  // A product is named after its primary vehicle, which may be a platform sibling of the car being
+  // browsed — so on vehicle listings each card says which of the buyer's models it fits.
+  let items: ProductCardData[];
+  if (!make) {
+    items = result.items.map(toCardData);
+  } else {
+    const makeId = make.id;
+    const makeName = make.name;
+    const needed = new Set<string>();
+    for (const product of result.items) {
+      for (const f of product.fitment) {
+        if (f.makeId === makeId && (!query.modelId || f.modelId === query.modelId)) needed.add(f.modelId);
+      }
+    }
+    const neededIds = [...needed];
+    const models = await Promise.all(neededIds.map((id) => getModelById(id)));
+    const nameById = new Map<string, string>();
+    neededIds.forEach((id, index) => {
+      const model = models[index];
+      if (model) nameById.set(id, model.name);
+    });
+    items = result.items.map((product) => {
+      const card = toCardData(product);
+      const names = product.fitment
+        .filter((f) => f.makeId === makeId && (!query.modelId || f.modelId === query.modelId))
+        .map((f) => nameById.get(f.modelId))
+        .filter((name): name is string => Boolean(name));
+      return names.length > 0 ? { ...card, fitLabel: `${makeName} ${[...new Set(names)].join(", ")}` } : card;
+    });
+  }
   const activeCount = activeFilterCount(state, showCategories);
 
   // ── active-filter chips (labels resolved here on the server) ──
   const chips: FilterChip[] = [];
   for (const slug of state.brandSlugs) {
-    const brand = getBrand(slug);
+    const brand = brandBySlug.get(slug);
     if (!brand) continue;
     chips.push({
       key: `brand-${slug}`,
@@ -127,9 +155,8 @@ export function ProductListing({
   }
   if (state.inStock) chips.push({ key: "instock", label: "В наявності", patch: { instock: false } });
   if (state.sale) chips.push({ key: "sale", label: "Зі знижкою", patch: { sale: false } });
-  if (selectedCategory) {
-    const category = getCategory(selectedCategory);
-    if (category) chips.push({ key: "category", label: category.name, patch: { category: null } });
+  if (selectedCategory && categoryObj) {
+    chips.push({ key: "category", label: categoryObj.name, patch: { category: null } });
   }
 
   const filterPanel =

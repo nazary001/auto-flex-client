@@ -13,7 +13,7 @@ export interface CategoryTile {
 /** Grid of catalog-group tiles: part illustration, name and product count. */
 export function CategoryTiles({ items, className }: { items: CategoryTile[]; className?: string }) {
   return (
-    <ul className={cn("grid grid-cols-2 gap-3 sm:grid-cols-3", className)}>
+    <ul className={cn("reveal-children grid grid-cols-2 gap-3 sm:grid-cols-3", className)}>
       {items.map((category) => (
         <li key={category.slug}>
           <Link

@@ -36,7 +36,11 @@ export function FavoriteButton({ productId, name, variant = "icon", className }:
           className,
         )}
       >
-        <Heart aria-hidden className={cn("size-5", active && "fill-brand-600 text-brand-600")} strokeWidth={1.75} />
+        <Heart
+          aria-hidden
+          className={cn("size-5", active && "animate-bump fill-brand-600 text-brand-600")}
+          strokeWidth={1.75}
+        />
         {active ? "В обраному" : "В обране"}
       </button>
     );
@@ -54,7 +58,7 @@ export function FavoriteButton({ productId, name, variant = "icon", className }:
         className,
       )}
     >
-      <Heart aria-hidden className={cn("size-[18px]", active && "fill-brand-600")} strokeWidth={1.75} />
+      <Heart aria-hidden className={cn("size-[18px]", active && "animate-bump fill-brand-600")} strokeWidth={1.75} />
     </button>
   );
 }

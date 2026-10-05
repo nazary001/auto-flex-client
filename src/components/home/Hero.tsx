@@ -32,7 +32,7 @@ export function Hero({ makes, categories, productCount, makeCount, brandCount }:
             preload
             placeholder="blur"
             sizes="(min-width: 1024px) 70vw, 100vw"
-            className="object-cover object-[68%_center] lg:object-[60%_center]"
+            className="animate-drive-in object-cover object-[68%_center] lg:object-[60%_center]"
           />
           {/* left → right navy fade so the headline stays readable over the photo */}
           <div className="absolute inset-0 bg-linear-to-r from-navy-950 from-20% via-navy-950/75 via-55% to-navy-950/25 lg:via-navy-950/55 lg:via-45% lg:to-transparent" />
@@ -48,16 +48,16 @@ export function Hero({ makes, categories, productCount, makeCount, brandCount }:
 
         <div className="container-page relative z-10 pt-12 pb-28 sm:pt-16 sm:pb-32 lg:pt-24 lg:pb-36">
           <div className="max-w-xl lg:max-w-2xl">
-            <h1 className="display text-[2.1rem] leading-[1.05] text-white sm:text-5xl lg:text-6xl">
-              Надійні автозапчастини для вашого авто
+            <h1 className="display animate-rise text-[2.1rem] leading-[1.05] text-white sm:text-5xl lg:text-6xl">
+              Автоаксесуари та тюнінг для вашого авто
             </h1>
-            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-white/80 sm:text-lg">
+            <p className="mt-5 max-w-xl animate-rise text-[15px] leading-relaxed text-white/80 [animation-delay:90ms] sm:text-lg">
               {countUk(productCount, ["товар", "товари", "товарів"])} для{" "}
               {countUk(makeCount, ["марки", "марок", "марок"])} авто від{" "}
-              {countUk(brandCount, ["перевіреного бренду", "перевірених брендів", "перевірених брендів"])} — з перевіркою
-              сумісності за VIN і доставкою по Україні за <span className="whitespace-nowrap">1–3 дні</span>.
+              {countUk(brandCount, ["перевіреного бренду", "перевірених брендів", "перевірених брендів"])} — з підбором
+              під вашу модель і доставкою по Україні за <span className="whitespace-nowrap">1–3 дні</span>.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-7 flex animate-rise flex-col gap-3 [animation-delay:180ms] sm:flex-row sm:items-center">
               <Link href="/catalog" className={buttonClass({ size: "lg", className: "max-sm:btn-block" })}>
                 Перейти до каталогу
                 <ArrowRight aria-hidden className="size-[18px]" />
@@ -76,10 +76,10 @@ export function Hero({ makes, categories, productCount, makeCount, brandCount }:
 
       {/* Vehicle selector card overlapping the hero's bottom edge */}
       <div className="container-page relative z-20 -mt-20 sm:-mt-24">
-        <div className="rounded-card bg-white p-5 shadow-pop ring-1 ring-navy-950/5 sm:p-6">
+        <div className="animate-rise rounded-card bg-white p-5 shadow-pop ring-1 ring-navy-950/5 [animation-delay:260ms] sm:p-6">
           <h2 className="mb-4 flex items-center gap-2 text-base font-bold text-ink">
             <CarFront aria-hidden className="size-5 text-brand-700" strokeWidth={1.75} />
-            Підбір запчастин за авто
+            Підбір аксесуарів за авто
           </h2>
           <VehicleSelector makes={makes} categories={categories} variant="hero" />
         </div>

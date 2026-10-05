@@ -4,9 +4,9 @@
  */
 export const site = {
   name: "AutoFlex",
-  tagline: "Надійні автозапчастини для вашого авто",
+  tagline: "Автоаксесуари та тюнінг для вашого авто",
   description:
-    "Інтернет-магазин автозапчастин AutoFlex: підбір за маркою та моделлю авто, перевірка сумісності перед відправкою, доставка по Україні за 1–3 дні.",
+    "Інтернет-магазин автоаксесуарів і тюнінгу AutoFlex: дефлектори, килимки, хром-накладки та багажники на дах, підібрані під конкретну модель авто. Доставка по Україні за 1–3 дні.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://autoflex.ua",
   domainLabel: "www.autoflex.ua",
   phone: { label: "+38 (097) 123-45-67", href: "tel:+380971234567" },
@@ -90,7 +90,7 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
 /** Benefits bar from the brandbook («Приклад використання») */
 export const benefits = [
   { icon: "delivery", title: "Доставка по Україні", text: "1–3 дні" },
-  { icon: "warranty", title: "Гарантія якості", text: "на всі товари" },
-  { icon: "support", title: "Допомога з підбором", text: "підберемо запчастини" },
+  { icon: "support", title: "Підбір за моделлю", text: "аксесуари під ваше авто" },
+  { icon: "warranty", title: "Повернення 14 днів", text: "товар належної якості" },
   { icon: "payment", title: "Оплата зручно", text: "готівка, карта, частинами" },
 ] as const;

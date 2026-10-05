@@ -51,7 +51,7 @@ export function MiniCart() {
           onClick={(e) => {
             if ((e.target as HTMLElement).closest("a")) setOpen(false);
           }}
-          className="absolute right-0 top-full z-20 mt-2 w-[22.5rem] overflow-hidden rounded-card border border-line-soft bg-white shadow-pop animate-fade-in"
+          className="absolute right-0 top-full z-20 mt-2 w-[22.5rem] overflow-hidden rounded-card border border-line-soft bg-white shadow-pop animate-drop-in"
         >
           <div className="flex items-center justify-between gap-3 border-b border-line-soft px-4 py-3">
             <p className="font-bold text-ink">Кошик</p>

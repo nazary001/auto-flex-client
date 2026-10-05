@@ -13,12 +13,12 @@ const steps: Step[] = [
   {
     icon: Search,
     title: "Підбір",
-    text: "Оберіть деталь за маркою й моделлю авто або знайдіть за артикулом, OE-номером чи VIN.",
+    text: "Оберіть аксесуар за маркою й моделлю авто або знайдіть потрібний товар за назвою чи артикулом.",
   },
   {
     icon: ShieldCheck,
-    title: "Перевірка сумісності за VIN",
-    text: "Менеджер звіряє запчастину з вашим авто за VIN перед відправкою зі складу постачальника.",
+    title: "Підбір під вашу модель",
+    text: "Товари підібрані під конкретні моделі авто; за потреби менеджер уточнить покоління за VIN перед відправкою.",
   },
   {
     icon: CreditCard,
@@ -41,7 +41,7 @@ export function HowItWorks() {
           as="h2"
           onDark
           title="Як ми працюємо"
-          description="Прозорий шлях від вибору деталі до доставки — без зайвих кроків."
+          description="Прозорий шлях від вибору аксесуара до доставки — без зайвих кроків."
           className="mb-8"
         />
 
@@ -49,7 +49,7 @@ export function HowItWorks() {
           <div className="relative mx-auto aspect-[322/290] w-full max-w-[322px] overflow-hidden rounded-card ring-1 ring-white/15 lg:mx-0">
             <Image
               src={photoMechanic}
-              alt="Майстер AutoFlex перевіряє деталі в майстерні"
+              alt="Фахівець AutoFlex перевіряє товар перед відправленням"
               fill
               placeholder="blur"
               sizes="322px"
@@ -58,7 +58,7 @@ export function HowItWorks() {
             <span aria-hidden className="absolute inset-0 bg-linear-to-t from-navy-950/60 to-transparent" />
           </div>
 
-          <ol className="grid gap-4 sm:grid-cols-2">
+          <ol className="reveal-children grid gap-4 sm:grid-cols-2">
             {steps.map((step, index) => (
               <li
                 key={step.title}

@@ -2,49 +2,49 @@ import type { Promo } from "@/lib/types";
 
 /**
  * Current promotions shown on the home page and on /aktsii.
- * Every href points to a listing that is non-empty for the current catalog.
+ * Every href points to a catalog group that is non-empty for the current catalog.
  * The copy deliberately names no discount percentage: the real figure is shown on
  * each product, so the banners cannot go stale when prices change.
  */
 export const promos: Promo[] = [
   {
-    slug: "znyzhky-na-halmivnu-systemu",
-    title: "Гальма за зниженими цінами",
-    text: "Колодки, диски та супорти перевірених брендів за зниженими цінами. Підберемо за VIN і перевіримо сумісність перед відправкою.",
+    slug: "znyzhky-na-khrom-nakladky",
+    title: "Хром-накладки зі знижкою",
+    text: "Накладки на ручки, дзеркала, пороги та молдинги з нержавійки й хром-пластику за зниженими цінами. Освіжіть вигляд авто без фарбування.",
     period: "до кінця місяця",
-    href: "/catalog/halmivna-systema?sale=1",
+    href: "/catalog/khrom-nakladky?sale=1",
     cta: "Дивитися знижки",
-    illustration: "halmivni-dysky",
+    illustration: "_fallback",
     tone: "navy",
   },
   {
-    slug: "znyzhky-na-pidvisku",
-    title: "Оновіть ходову частину",
-    text: "Амортизатори, важелі, опори та стійки стабілізатора — знижки на вибрані позиції підвіски й рульового.",
+    slug: "deflektory-pid-model",
+    title: "Дефлектори під вашу модель",
+    text: "Вітровики на вікна, капот і зимові накладки — модельні комплекти, що сідають рівно й без щілин. Підберемо під ваш кузов.",
     period: "цього тижня",
-    href: "/catalog/pidviska-ta-rulove?sale=1",
-    cta: "Обрати запчастини",
-    illustration: "amortyzatory",
+    href: "/catalog/deflektory",
+    cta: "Обрати дефлектори",
+    illustration: "deflektory-vikon",
     tone: "blue",
   },
   {
-    slug: "znyzhky-na-dvyhun",
-    title: "Двигун у тонусі",
-    text: "Комплекти ГРМ, свічки та котушки запалювання зі знижками. Планове обслуговування — поки є на складі.",
+    slug: "kylymky-v-salon",
+    title: "Килимки в салон і багажник",
+    text: "Гумові, текстильні та EVA-килимки з високими бортиками — захистять підлогу від вологи, бруду й реагентів. Модельні та універсальні.",
     period: "поки є на складі",
-    href: "/catalog/dvyhun?sale=1",
-    cta: "Переглянути товари",
-    illustration: "komplekty-hrm",
+    href: "/catalog/kylymky",
+    cta: "Переглянути килимки",
+    illustration: "kylymky",
     tone: "light",
   },
   {
-    slug: "pidhotovka-do-zymy",
-    title: "Готуємо авто до зими",
-    text: "Моторні оливи, антифриз, гальмівна рідина та автохімія — усе, щоб спокійно зустріти холодний сезон. Зберіть набір одним замовленням.",
-    period: "перед зимою",
-    href: "/catalog/olyvy-ta-avtokhimiia",
-    cta: "Зібрати набір",
-    illustration: "antyfryzy",
+    slug: "bahazhni-systemy-na-dakh",
+    title: "Більше простору на даху",
+    text: "Рейлінги, поперечини, автобокси та кріплення для велосипедів і лиж. Зберіть багажну систему під свій дах і наступну подорож.",
+    period: "перед сезоном подорожей",
+    href: "/catalog/bahazhnyky-ta-duhy-na-dakh",
+    cta: "Зібрати систему",
+    illustration: "bahazhnyky-na-dakh",
     tone: "navy",
   },
 ];

@@ -1,17 +1,18 @@
-import { getBrandById, getCategory } from "@/lib/catalog";
 import type { Product, ProductCardData } from "@/lib/types";
 
-/** Resolves brand and category so the card can be rendered anywhere, including Client Components */
+/**
+ * Plain card data for Client Components. Brand, category and illustration are denormalised
+ * on every catalog product, so no lookup is needed.
+ */
 export function toCardData(product: Product): ProductCardData {
-  const category = getCategory(product.categoryId);
   return {
     id: product.id,
     slug: product.slug,
     sku: product.sku,
     name: product.name,
-    brandName: getBrandById(product.brandId)?.name ?? "",
-    categoryName: category?.name ?? "",
-    illustration: category?.illustration ?? "_fallback",
+    brandName: product.brandName ?? "",
+    categoryName: product.categoryName ?? "",
+    illustration: product.illustration ?? "_fallback",
     image: product.images[0],
     price: product.price,
     oldPrice: product.oldPrice,

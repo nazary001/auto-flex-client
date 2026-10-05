@@ -17,7 +17,7 @@ interface SectionHeadingProps {
 /** Section title with the slanted brand mark */
 export function SectionHeading({ title, description, action, as: Tag = "h2", onDark = false, className }: SectionHeadingProps) {
   return (
-    <div className={cn("flex flex-wrap items-end justify-between gap-x-6 gap-y-2", className)}>
+    <div className={cn("reveal flex flex-wrap items-end justify-between gap-x-6 gap-y-2", className)}>
       <div className="min-w-0">
         <Tag
           className={cn(

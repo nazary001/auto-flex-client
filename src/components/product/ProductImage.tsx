@@ -30,7 +30,7 @@ export function ProductImage({ image, illustration, alt, sizes, preload = false,
           fill
           sizes={sizes ?? "(min-width: 1280px) 300px, (min-width: 768px) 33vw, 50vw"}
           preload={preload}
-          className="object-contain p-3 mix-blend-multiply"
+          className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-out group-hover:scale-105"
         />
       ) : (
         <Image
@@ -39,7 +39,7 @@ export function ProductImage({ image, illustration, alt, sizes, preload = false,
           fill
           unoptimized
           preload={preload}
-          className="object-contain p-[8%]"
+          className="object-contain p-[8%] transition-transform duration-500 ease-out group-hover:scale-105"
         />
       )}
     </div>

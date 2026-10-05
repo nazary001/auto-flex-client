@@ -12,17 +12,24 @@ import { cn } from "@/lib/cn";
 import { canBuy, discountPercent, formatDeliveryDays, formatPrice } from "@/lib/format";
 import { toast, toCartItem, useCartStore } from "@/lib/store";
 import type { ProductCardData } from "@/lib/types";
+import { setVariantImage } from "./variant-image";
 
-/** Base price corresponds to the zero-delta option value, so start there to match the name and price shown. */
+/**
+ * Base price corresponds to the zero-delta option value, so start there to match the name and price
+ * shown — but never pre-select a sold-out variant when a buyable one is available.
+ */
 function defaultOptionId(product: ProductCardData): string | undefined {
   if (!product.option) return undefined;
-  const base = product.option.values.find((v) => v.priceDelta === 0) ?? product.option.values[0];
+  const selectable = product.option.values.filter((v) => v.stock !== "out_of_stock");
+  const pool = selectable.length > 0 ? selectable : product.option.values;
+  const base = pool.find((v) => v.priceDelta === 0) ?? pool[0];
   return base?.id;
 }
 
 export function BuyBox({ product }: { product: ProductCardData }) {
   const add = useCartStore((s) => s.add);
   const [optionId, setOptionId] = useState(() => defaultOptionId(product));
+  const [shownProduct, setShownProduct] = useState(product);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
@@ -47,7 +54,18 @@ export function BuyBox({ product }: { product: ProductCardData }) {
     return () => observer.disconnect();
   }, []);
 
+  // The product page reuses this instance across products — re-pick the default variant when it
+  // changes (adjust state during render, not in an effect).
+  if (shownProduct !== product) {
+    setShownProduct(product);
+    setOptionId(defaultOptionId(product));
+  }
+
+  // Clear the shared variant photo when the buy box leaves the page.
+  useEffect(() => () => setVariantImage(undefined), []);
+
   const optionValue = product.option?.values.find((v) => v.id === optionId);
+  const variantImage = optionValue?.image;
   const delta = optionValue?.priceDelta ?? 0;
   const price = product.price + delta;
   const oldPrice = product.oldPrice != null ? product.oldPrice + delta : undefined;
@@ -55,6 +73,11 @@ export function BuyBox({ product }: { product: ProductCardData }) {
   const saving = oldPrice ? oldPrice - price : 0;
   const available = canBuy(product.stock);
   const term = formatDeliveryDays(product.deliveryDays);
+
+  // Show the selected variant's photo first in the gallery (sibling component).
+  useEffect(() => {
+    setVariantImage(variantImage);
+  }, [variantImage]);
 
   function addToCart() {
     add(toCartItem(product, optionValue), qty);
@@ -105,12 +128,16 @@ export function BuyBox({ product }: { product: ProductCardData }) {
             onChange={(event) => setOptionId(event.target.value)}
             className="field"
           >
-            {product.option.values.map((value) => (
-              <option key={value.id} value={value.id}>
-                {value.label}
-                {value.priceDelta ? ` (${value.priceDelta > 0 ? "+" : "−"}${formatPrice(Math.abs(value.priceDelta))})` : ""}
-              </option>
-            ))}
+            {product.option.values.map((value) => {
+              const soldOut = value.stock === "out_of_stock";
+              return (
+                <option key={value.id} value={value.id} disabled={soldOut}>
+                  {value.label}
+                  {value.priceDelta ? ` (${value.priceDelta > 0 ? "+" : "−"}${formatPrice(Math.abs(value.priceDelta))})` : ""}
+                  {soldOut ? " — немає" : ""}
+                </option>
+              );
+            })}
           </select>
         </div>
       )}
