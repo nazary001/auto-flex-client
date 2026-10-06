@@ -36,7 +36,13 @@ export async function seedDemoOrdersIfPending(db: Db): Promise<boolean> {
 }
 
 async function run(db: Db): Promise<void> {
-  await ensureIndexes(db);
+  // Index creation is a write: when Atlas blocks writes (storage quota exceeded) the indexes
+  // already exist from earlier runs, so keep serving reads instead of taking the whole site down.
+  try {
+    await ensureIndexes(db);
+  } catch (error) {
+    console.error("[AutoFlex] Не вдалося створити індекси — продовжую без них (читання працює, записи можуть падати)", error);
+  }
 
   const email = process.env.ADMIN_EMAIL?.trim();
   const password = process.env.ADMIN_PASSWORD;
