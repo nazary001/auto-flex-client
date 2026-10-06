@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { Checkbox, Field, Textarea } from "@/components/ui/Field";
+import { Checkbox, Field, Select, Textarea } from "@/components/ui/Field";
 import { Card, StatusBadge } from "@/components/admin/ui";
 import { allowedTransitions, suggestNextStep } from "@/lib/admin/domain/order-status";
 import { orderStatusMeta } from "@/lib/admin/labels";
@@ -71,12 +71,26 @@ export function OrderStatusCard({ order, canWrite }: OrderStatusCardProps) {
           {order.status === "confirmed" && !next && (
             <p className="text-[13px] text-ink-3">Спершу створіть закупівлю для позицій, що очікують.</p>
           )}
-          <div className="flex flex-wrap gap-2">
-            {secondary.map((t) => (
-              <Button key={t} variant="secondary" size="sm" disabled={pending} onClick={() => go(t)}>
-                {orderStatusMeta[t].label}
-              </Button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2">
+            {secondary.length > 0 && (
+              <Select
+                aria-label="Інший статус"
+                value=""
+                disabled={pending}
+                onChange={(e) => {
+                  const to = e.target.value as OrderStatus | "";
+                  if (to) go(to);
+                }}
+                className="h-9 w-auto py-0 text-sm"
+              >
+                <option value="">Інший статус…</option>
+                {secondary.map((t) => (
+                  <option key={t} value={t}>
+                    {orderStatusMeta[t].label}
+                  </option>
+                ))}
+              </Select>
+            )}
             {transitions.includes("cancelled") && (
               <Button variant="ghost" size="sm" disabled={pending} onClick={() => setCancelOpen(true)} className="text-danger">
                 Скасувати

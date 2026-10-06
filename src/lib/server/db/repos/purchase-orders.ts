@@ -12,7 +12,9 @@ import type {
 } from "@/lib/admin/types";
 import { cols, type PurchaseOrderDoc } from "../collections";
 import { compact, containsRegex, dateRange, fromDoc, newId, nextSequence, nowIso, paginate, toDoc } from "../util";
-import { getOrders, markLinesOrdered, setLinesFulfillmentByPurchaseOrder } from "./orders";
+import { isTrackingNumber } from "@/lib/server/nova-poshta";
+import { advanceOrderTo } from "@/lib/server/orders/tracking";
+import { getOrders, markLinesOrdered, setLinesFulfillmentByPurchaseOrder, updateOrder } from "./orders";
 import { getSupplier } from "./suppliers";
 
 /*
@@ -23,11 +25,11 @@ import { getSupplier } from "./suppliers";
 const toPo = (doc: PurchaseOrderDoc): PurchaseOrder => fromDoc<PurchaseOrder>(doc);
 
 export const PO_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
-  draft: ["sent", "cancelled"],
-  sent: ["confirmed", "shipped", "cancelled"],
-  confirmed: ["shipped", "cancelled"],
-  shipped: ["received"],
-  received: [],
+  draft: ["sent", "confirmed", "cancelled"],
+  sent: ["draft", "confirmed", "shipped", "received", "cancelled"],
+  confirmed: ["sent", "shipped", "received", "cancelled"],
+  shipped: ["confirmed", "received", "cancelled"],
+  received: ["shipped"],
   cancelled: ["draft"],
 };
 
@@ -234,7 +236,39 @@ export async function setPurchaseOrderStatus(
   } else {
     await setLinesFulfillmentByPurchaseOrder(db, id, "ordered", actor, label);
   }
+  if (updated.shipDirect && (to === "shipped" || to === "received")) {
+    await syncDirectShipment(db, updated, to, actor);
+  }
   return updated;
+}
+
+/**
+ * Drop-shipping: the supplier's parcel is the buyer's parcel, so its tracking number lands on the
+ * orders and they move to "in_transit" / "delivered" once every active line has left / arrived.
+ */
+async function syncDirectShipment(db: Db, po: PurchaseOrder, to: "shipped" | "received", actor: Actor): Promise<void> {
+  const orders = await getOrders(db, [...new Set(po.lines.map((line) => line.orderId))]);
+  for (const order of orders) {
+    let current = order;
+    if (po.trackingNumber && !current.delivery.trackingNumber) {
+      const carrier = current.delivery.carrier ?? (isTrackingNumber(po.trackingNumber) ? "nova_poshta" : undefined);
+      current = await updateOrder(
+        db,
+        current.id,
+        { delivery: compact({ ...current.delivery, trackingNumber: po.trackingNumber, carrier }) },
+        actor,
+        {
+          type: "delivery_changed",
+          text: `Номер ТТН від постачальника: ${po.trackingNumber} (закупівля ${po.number})`,
+          data: { purchaseOrderId: po.id },
+        },
+      );
+    }
+    const active = current.lines.filter((line) => line.fulfillment !== "cancelled");
+    const allIn = (states: string[]) => active.length > 0 && active.every((line) => states.includes(line.fulfillment));
+    if (to === "received" && allIn(["delivered"])) await advanceOrderTo(db, current, "delivered", actor);
+    else if (allIn(["shipped", "delivered"])) await advanceOrderTo(db, current, "in_transit", actor);
+  }
 }
 
 /** Purchase orders waiting at the supplier longer than its maximum lead time */

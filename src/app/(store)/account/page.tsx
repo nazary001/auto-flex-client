@@ -13,6 +13,7 @@ import { formatPhone } from "@/lib/format";
 import { requireAccount } from "@/lib/server/account/dal";
 import { getDb } from "@/lib/server/db/client";
 import { listOrdersByCustomer, listOrdersByPhone } from "@/lib/server/db/repos/orders";
+import { refreshStaleTracking } from "@/lib/server/orders/tracking";
 
 export const metadata: Metadata = {
   title: "Кабінет",
@@ -28,9 +29,11 @@ async function loadOrders(customerId: string, phone: string): Promise<Order[]> {
   const db = await getDb();
   const [byCustomer, byPhone] = await Promise.all([listOrdersByCustomer(db, customerId), listOrdersByPhone(db, phone)]);
   const seen = new Set<string>();
-  return [...byCustomer, ...byPhone]
+  const orders = [...byCustomer, ...byPhone]
     .filter((order) => (seen.has(order.id) ? false : (seen.add(order.id), true)))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // Fresh parcel statuses for the parcels still on their way (at most three carrier calls per visit)
+  return refreshStaleTracking(db, orders, { limit: 3, timeoutMs: 4000 });
 }
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {

@@ -85,6 +85,8 @@ export interface TrackingSnapshot {
   checkedAt: string;
   scheduledDeliveryDate?: string;
   warehouse?: string;
+  /** Hand-over moment as the carrier reports it, "dd-mm-yyyy hh:mm:ss" */
+  receivedAt?: string;
 }
 
 export interface OrderDelivery {

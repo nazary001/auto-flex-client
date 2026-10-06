@@ -78,9 +78,11 @@ describe("order status machine", () => {
   it("allows only the documented transitions", () => {
     expect(canTransition("new", "confirmed")).toBe(true);
     expect(canTransition("new", "delivered")).toBe(false);
-    expect(canTransition("in_transit", "cancelled")).toBe(false);
+    expect(canTransition("in_transit", "cancelled")).toBe(true);
+    expect(canTransition("sourcing", "confirmed")).toBe(true);
     expect(canTransition("cancelled", "new")).toBe(true);
-    expect(canTransition("returned", "new")).toBe(false);
+    expect(canTransition("returned", "new")).toBe(true);
+    expect(canTransition("completed", "new")).toBe(false);
   });
 
   it("requires a reason to cancel and cancels pending lines", () => {

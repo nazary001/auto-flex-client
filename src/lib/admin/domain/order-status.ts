@@ -7,20 +7,22 @@ import type { Order, OrderLine, OrderStatus } from "../types";
  *     ↘ on_hold ↗                      ↘ returned
  *     ↘ cancelled (reopen → new)
  *
- * The manager moves the order; purchase-order and tracking changes only move lines
- * and suggest the next step.
+ * The happy path is what the automation follows (purchase orders and parcel tracking move the
+ * order forward, see src/lib/server/orders/tracking.ts). A manager may also step back, skip a
+ * stage, cancel before completion or reopen a closed order — the table below only rules out
+ * moves that make no sense (e.g. "new" straight to "delivered").
  */
 
 export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  new: ["confirmed", "on_hold", "cancelled"],
-  confirmed: ["sourcing", "in_transit", "on_hold", "cancelled"],
-  sourcing: ["in_transit", "on_hold", "cancelled"],
-  in_transit: ["delivered", "returned"],
-  delivered: ["completed", "returned"],
-  completed: ["returned"],
-  on_hold: ["new", "confirmed", "sourcing", "cancelled"],
-  cancelled: ["new"],
-  returned: [],
+  new: ["confirmed", "sourcing", "in_transit", "on_hold", "cancelled"],
+  confirmed: ["new", "sourcing", "in_transit", "delivered", "on_hold", "cancelled"],
+  sourcing: ["confirmed", "in_transit", "delivered", "on_hold", "cancelled"],
+  in_transit: ["confirmed", "sourcing", "delivered", "completed", "on_hold", "returned", "cancelled"],
+  delivered: ["in_transit", "completed", "returned", "cancelled"],
+  completed: ["delivered", "returned"],
+  on_hold: ["new", "confirmed", "sourcing", "in_transit", "cancelled"],
+  cancelled: ["new", "confirmed"],
+  returned: ["new", "delivered", "completed"],
 };
 
 export const TERMINAL_STATUSES: OrderStatus[] = ["completed", "cancelled", "returned"];
@@ -97,12 +99,14 @@ export function applyTransition(order: Order, to: OrderStatus, options: Transiti
       break;
     }
     case "new":
-      // Reopening a cancelled / held order: lines go back to awaiting purchase
-      if (from === "cancelled") {
+      // Reopening a cancelled / returned order: lines go back to awaiting purchase
+      if (from === "cancelled" || from === "returned") {
         patch.cancelReason = undefined;
         patch.cancelledAt = undefined;
         patch.lines = order.lines.map((line) =>
-          line.fulfillment === "cancelled" ? { ...line, fulfillment: "pending" } : line,
+          line.fulfillment === "cancelled" || line.fulfillment === "shipped" || line.fulfillment === "delivered"
+            ? { ...line, fulfillment: "pending" }
+            : line,
         );
       }
       break;

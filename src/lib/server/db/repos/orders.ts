@@ -308,6 +308,19 @@ export async function listOrdersByPhone(db: Db, phone: string, limit = 50): Prom
   return docs.map(fromOrderDoc);
 }
 
+/** Orders with a tracking number whose parcel may still be on its way (periodic status refresh) */
+export async function listOrdersAwaitingDelivery(db: Db, limit = 60): Promise<Order[]> {
+  const docs = await cols(db)
+    .orders.find({
+      "delivery.trackingNumber": { $type: "string", $ne: "" },
+      status: { $in: ["new", "confirmed", "sourcing", "on_hold", "in_transit"] },
+    })
+    .sort({ updatedAt: 1 })
+    .limit(limit)
+    .toArray();
+  return docs.map(fromOrderDoc);
+}
+
 export async function listOrdersForPurchaseOrder(db: Db, purchaseOrderId: string): Promise<Order[]> {
   const docs = await cols(db).orders.find({ "lines.purchaseOrderId": purchaseOrderId }).toArray();
   return docs.map(fromOrderDoc);
@@ -363,6 +376,8 @@ export async function changeOrderStatus(
 ): Promise<Order> {
   const current = await getOrder(db, id);
   if (!current) throw new Error("Замовлення не знайдено.");
+  // Automation (parcel tracking, drop-shipping) may already have moved the order: a repeat is a no-op
+  if (current.status === to) return current;
   const patch = applyTransition(current, to, options);
   const text =
     `${orderStatusMeta[current.status].label} → ${orderStatusMeta[to].label}` +

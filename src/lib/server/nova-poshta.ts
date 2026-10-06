@@ -44,7 +44,10 @@ export function isTrackingNumber(value: string): boolean {
   return /^\d{14}$/.test(value.replace(/\s/g, ""));
 }
 
-export async function trackDocument(trackingNumber: string, options: { apiKey?: string; phone?: string } = {}): Promise<TrackingResult> {
+export async function trackDocument(
+  trackingNumber: string,
+  options: { apiKey?: string; phone?: string; timeoutMs?: number } = {},
+): Promise<TrackingResult> {
   const number = trackingNumber.replace(/\s/g, "");
   if (!isTrackingNumber(number)) throw new TrackingError("Номер ТТН має складатися з 14 цифр.");
 
@@ -59,7 +62,7 @@ export async function trackDocument(trackingNumber: string, options: { apiKey?: 
         calledMethod: "getStatusDocuments",
         methodProperties: { Documents: [{ DocumentNumber: number, Phone: options.phone ?? "" }] },
       }),
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 10000),
     });
   } catch {
     throw new TrackingError("Нова Пошта не відповідає. Спробуйте пізніше.");
@@ -89,4 +92,50 @@ export async function trackDocument(trackingNumber: string, options: { apiKey?: 
 
 export function trackingUrl(trackingNumber: string): string {
   return `https://novaposhta.ua/tracking/?cargo_number=${encodeURIComponent(trackingNumber.replace(/\s/g, ""))}`;
+}
+
+/** Public tracking page of the carrier that handles the parcel */
+export function carrierTrackingUrl(carrier: string | undefined, trackingNumber: string): string {
+  const number = trackingNumber.replace(/\s/g, "");
+  if (carrier === "ukrposhta") return `https://track.ukrposhta.ua/tracking_UA.html?barcode=${encodeURIComponent(number)}`;
+  return trackingUrl(number);
+}
+
+export type TrackingStage = "label" | "in_transit" | "awaiting_pickup" | "delivered" | "returning" | "unknown";
+
+/** Coarse stage behind a Nova Poshta status code (see «Статуси ТТН» in the API docs) */
+export function trackingStage(statusCode?: string): TrackingStage {
+  switch (statusCode) {
+    case undefined:
+    case "":
+    case "2":
+    case "3":
+      return "unknown";
+    case "1":
+      return "label";
+    case "7":
+    case "8":
+      return "awaiting_pickup";
+    case "9":
+    case "10":
+    case "11":
+      return "delivered";
+    case "102":
+    case "103":
+    case "105":
+    case "106":
+    case "108":
+      return "returning";
+    default:
+      return "in_transit";
+  }
+}
+
+/** "15-03-2026 14:21:03" → "15.03.2026" (or "15.03.2026, 14:21") */
+export function formatNpDate(raw?: string, withTime = false): string | undefined {
+  if (!raw) return undefined;
+  const m = raw.trim().match(/^(\d{2})-(\d{2})-(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
+  if (!m) return raw;
+  const date = `${m[1]}.${m[2]}.${m[3]}`;
+  return withTime && m[4] ? `${date}, ${m[4]}:${m[5]}` : date;
 }

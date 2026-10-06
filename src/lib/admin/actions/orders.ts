@@ -7,7 +7,7 @@ import { z } from "zod";
 import { isValidUaPhone, normalizePhone } from "@/lib/format";
 import { searchCatalog } from "@/lib/catalog";
 import { orderStatusMeta, paymentStatusMeta } from "@/lib/admin/labels";
-import type { Order, OrderCreateInput, OrderLine, TrackingSnapshot } from "@/lib/admin/types";
+import type { Order, OrderCreateInput, OrderLine } from "@/lib/admin/types";
 import { compact, nowIso } from "@/lib/server/db/util";
 import {
   addOrderEvent,
@@ -22,6 +22,7 @@ import { getSuppliersMap } from "@/lib/server/db/repos/suppliers";
 import { getRequest, updateRequest } from "@/lib/server/db/repos/requests";
 import { getSettings } from "@/lib/server/db/repos/settings";
 import { isTrackingNumber, trackDocument, TrackingError } from "@/lib/server/nova-poshta";
+import { advanceOrderTo, applyTrackingResult, refreshOrderTracking } from "@/lib/server/orders/tracking";
 import { ActionError, idSchema, moneySchema, optionalText, runAction, type ActionResult } from "./_action";
 
 /*
@@ -401,11 +402,29 @@ export async function updateDeliveryAction(input: unknown): Promise<ActionResult
     run: async ({ id, trackingNumber, carrier }, ctx) => {
       const order = await requireOrder(ctx.db, id);
       const ttn = trackingNumber ? trackingNumber.replace(/\s/g, "") : undefined;
-      const delivery = compact({ ...order.delivery, trackingNumber: ttn, carrier: carrier ?? order.delivery.carrier });
-      await updateOrder(ctx.db, id, { delivery }, ctx.actor, {
+      const nextCarrier = carrier ?? order.delivery.carrier ?? (ttn && isTrackingNumber(ttn) ? "nova_poshta" : undefined);
+      const delivery = compact({
+        ...order.delivery,
+        trackingNumber: ttn,
+        carrier: nextCarrier,
+        // a different parcel number means the stored carrier snapshot is about another parcel
+        tracking: ttn && ttn === order.delivery.trackingNumber ? order.delivery.tracking : undefined,
+      });
+      let updated = await updateOrder(ctx.db, id, { delivery }, ctx.actor, {
         type: "delivery_changed",
         text: ttn ? `Номер ТТН: ${ttn}` : "Номер ТТН очищено",
       });
+      if (ttn) {
+        // A tracking number means the parcel is on its way: move the order along and fetch its first status
+        updated = await advanceOrderTo(ctx.db, updated, "in_transit", ctx.actor);
+        const settings = await getSettings(ctx.db);
+        await refreshOrderTracking(ctx.db, updated, {
+          actor: ctx.actor,
+          apiKey: settings.novaPoshta.apiKey || undefined,
+          force: true,
+          timeoutMs: 6000,
+        });
+      }
       await ctx.audit({ action: "order.delivery", entity: "order", entityId: id, summary: `${order.number}: доставку оновлено` });
       revalidateOrder(id);
       return undefined;
@@ -432,19 +451,8 @@ export async function checkTrackingAction(input: unknown): Promise<ActionResult<
         if (error instanceof TrackingError) throw new ActionError(error.message);
         throw new ActionError("Не вдалося перевірити статус посилки.");
       }
-      const snapshot: TrackingSnapshot = compact({
-        status: result.status,
-        statusCode: result.statusCode,
-        checkedAt: nowIso(),
-        scheduledDeliveryDate: result.scheduledDeliveryDate,
-        warehouse: result.warehouseRecipient,
-      });
-      const delivery = { ...order.delivery, tracking: snapshot };
-      await updateOrder(ctx.db, id, { delivery }, ctx.actor, {
-        type: "tracking_checked",
-        text: `Статус посилки: ${result.status}`,
-        data: { statusCode: result.statusCode },
-      });
+      // Stores the snapshot and moves the order to "in_transit" / "delivered" when the parcel did
+      await applyTrackingResult(ctx.db, order, result, ctx.actor);
       await ctx.audit({ action: "order.tracking", entity: "order", entityId: id, summary: `${order.number}: ${result.status}` });
       revalidateOrder(id);
       return { status: result.status, delivered: result.delivered };

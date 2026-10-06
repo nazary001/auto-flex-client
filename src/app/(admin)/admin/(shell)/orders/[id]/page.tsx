@@ -20,6 +20,7 @@ import { formatPrice } from "@/lib/format";
 import { requireUser } from "@/lib/server/auth/dal";
 import { getDb } from "@/lib/server/db/client";
 import { getOrder, listOrderEvents } from "@/lib/server/db/repos/orders";
+import { refreshStaleTracking } from "@/lib/server/orders/tracking";
 import { getCustomer, getCustomerByPhone } from "@/lib/server/db/repos/customers";
 import { getSuppliersMap } from "@/lib/server/db/repos/suppliers";
 import { listPurchaseOrdersForOrder } from "@/lib/server/db/repos/purchase-orders";
@@ -52,8 +53,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const user = await requireUser("orders:read");
   const db = await getDb();
   const { id } = await params;
-  const order = await getOrder(db, id);
-  if (!order) notFound();
+  const stored = await getOrder(db, id);
+  if (!stored) notFound();
+  // A parcel on its way: ask the carrier again when the last check is older than 15 minutes
+  const order = (await refreshStaleTracking(db, [stored], { limit: 1, timeoutMs: 5000 }))[0] ?? stored;
 
   const canWrite = can(user, "orders:write");
   const [events, customer, suppliers, users, settings, pos] = await Promise.all([
