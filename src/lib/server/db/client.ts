@@ -143,7 +143,13 @@ async function connect(): Promise<Db> {
     throw new DatabaseUnavailableError("Не вдалося підключитися до MongoDB.", { cause: error });
   }
   const db = client.db(process.env.MONGODB_DB?.trim() || DEFAULT_DB_NAME);
-  await initDatabase(db);
+  try {
+    await initDatabase(db);
+  } catch (error) {
+    // Otherwise every failed request leaks a connected client (and its pool) until the instance dies
+    await client.close().catch(() => undefined);
+    throw error;
+  }
   g.__afMongo = { client, db };
   return db;
 }

@@ -55,6 +55,25 @@ const BUILD_BATCH = 300;
 const OFFER_BATCH = 2000;
 const LOG_LIMIT = 300;
 
+/*
+ * Atlas free/shared clusters block ALL writes once the logical data size reaches the quota
+ * (512 MB on M0), and the staging copy of the price list alone needs ~150 MB. Refuse to start
+ * filling the database when it would not fit instead of taking the whole store down.
+ */
+const STORAGE_LIMIT_MB = Number(process.env.MONGODB_STORAGE_LIMIT_MB) || 512;
+const SYNC_MIN_FREE_MB = Number(process.env.SYNC_MIN_FREE_MB) || 150;
+const SYNC_PAGE_MIN_FREE_MB = 20;
+
+async function assertStorageHeadroom(db: Db, neededMb: number): Promise<void> {
+  const stats = await db.stats();
+  const usedMb = Math.round((Number(stats.dataSize ?? 0) + Number(stats.indexSize ?? 0)) / 1048576);
+  if (STORAGE_LIMIT_MB - usedMb < neededMb) {
+    throw new SyncError(
+      `Недостатньо місця в базі даних: зайнято ${usedMb} з ${STORAGE_LIMIT_MB} МБ, для синхронізації потрібно ще ~${neededMb} МБ. Звільніть місце або збільште кластер Atlas.`,
+    );
+  }
+}
+
 export interface SyncOptions {
   /** Stop (status "paused") after this many milliseconds; the next call continues */
   budgetMs?: number;
@@ -465,6 +484,19 @@ export async function runDdTuningSync(db: Db, options: SyncOptions = {}): Promis
     };
     logTo(run, options, "Синхронізацію розпочато");
   } else {
+    // The staging copy may have been dropped meanwhile (e.g. to free space): the phases that read
+    // it would then "finish" with nothing, so fail this run and let the next one start over.
+    if (
+      (run.phase === "wholesale" || run.phase === "build") &&
+      (await cols(db).staging.countDocuments({ runId: run._id }, { limit: 1 })) === 0
+    ) {
+      run.status = "failed";
+      run.error = "Тимчасові дані синхронізації зникли (базу очищено) — запустіть синхронізацію заново.";
+      run.finishedAt = nowIso();
+      logTo(run, options, run.error);
+      await saveRun(db, run);
+      return run;
+    }
     run.status = "running";
     logTo(run, options, `Продовжуємо з фази «${run.phase}», позиція ${run.offset}`);
   }
@@ -531,7 +563,9 @@ export async function runDdTuningSync(db: Db, options: SyncOptions = {}): Promis
         }
 
         case "retail": {
-          if (run.offset === 0) await cols(db).staging.deleteMany({ runId: run._id });
+          // Leftovers of earlier failed runs would otherwise pile up (the staging copy is per run anyway)
+          if (run.offset === 0) await cols(db).staging.deleteMany({});
+          await assertStorageHeadroom(db, run.offset === 0 ? SYNC_MIN_FREE_MB : SYNC_PAGE_MIN_FREE_MB);
           const page = await fetchPricePage("retail", run.offset, DD_PAGE_SIZE, "ua");
           const docs: StagingDoc[] = page.data
             .filter((raw) => raw && typeof raw.id === "number" && raw.title)
@@ -658,11 +692,18 @@ export async function runDdTuningSync(db: Db, options: SyncOptions = {}): Promis
         }
 
         case "finalize": {
-          const retired = await cols(db).products.updateMany(
-            { source: "ddtuning", "supplier.syncedAt": { $lt: run.startedAt } },
-            { $set: { hidden: true, retired: true, stock: "out_of_stock", stockRank: 3, updatedAt: nowIso() } },
-          );
-          run.counters.retired = retired.modifiedCount;
+          // A run that built nothing (empty staging, aborted import) must not hide the whole catalog
+          let retiredCount = 0;
+          if ((run.counters.products ?? 0) > 0) {
+            const retired = await cols(db).products.updateMany(
+              { source: "ddtuning", "supplier.syncedAt": { $lt: run.startedAt } },
+              { $set: { hidden: true, retired: true, stock: "out_of_stock", stockRank: 3, updatedAt: nowIso() } },
+            );
+            retiredCount = retired.modifiedCount;
+          } else {
+            logTo(run, options, "Товари не оновлювались — нічого не знімаємо з продажу");
+          }
+          run.counters.retired = retiredCount;
           await cols(db).staging.deleteMany({ runId: run._id });
           await recountTaxonomy(db);
           // categories the sync created earlier that ended up empty (not the supplier's own, not edited by the admin)
@@ -676,7 +717,7 @@ export async function runDdTuningSync(db: Db, options: SyncOptions = {}): Promis
           invalidateTaxonomy();
           if (!firstSyncAt) await cols(db).meta.updateOne({ _id: "catalog.firstSyncAt" }, { $set: { value: run.startedAt } }, { upsert: true });
           await cols(db).meta.updateOne({ _id: "catalog.lastSyncAt" }, { $set: { value: nowIso() } }, { upsert: true });
-          logTo(run, options, `Завершено. Знято з продажу: ${retired.modifiedCount}`);
+          logTo(run, options, `Завершено. Знято з продажу: ${retiredCount}`);
           run.phase = "done";
           run.status = "done";
           run.finishedAt = nowIso();
