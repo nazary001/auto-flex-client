@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PhoneLink } from "@/components/layout/PhoneLink";
 import { Clock, Mail, Phone } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { BenefitIcon, SocialIcon } from "@/components/icons";
@@ -44,13 +45,13 @@ export function Footer() {
             постачальників.
           </p>
 
-          <a
+          <PhoneLink
             href={site.phone.href}
             className="mt-5 flex items-center gap-2 text-lg font-bold text-white transition-colors hover:text-brand-300"
           >
             <Phone aria-hidden className="size-5 text-brand-400" strokeWidth={2} />
             <span className="tabular">{site.phone.label}</span>
-          </a>
+          </PhoneLink>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
             <CallbackButton className="inline-flex h-9 items-center gap-2 rounded-btn border border-white/20 px-3.5 text-sm font-semibold text-white transition-colors hover:border-white/40 hover:bg-white/10">

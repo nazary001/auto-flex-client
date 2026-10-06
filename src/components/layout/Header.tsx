@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PhoneLink } from "@/components/layout/PhoneLink";
 import { Clock, Phone } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { SocialIcon } from "@/components/icons";
@@ -114,13 +115,13 @@ export async function Header() {
             <HeaderSearch instanceId="desktop" className="min-w-0 flex-1" />
 
             <div className="hidden shrink-0 xl:block">
-              <a
+              <PhoneLink
                 href={site.phone.href}
                 className="flex items-center gap-1.5 text-[15px] font-bold whitespace-nowrap text-ink transition-colors hover:text-brand-700"
               >
                 <Phone aria-hidden className="size-4 text-brand-700" strokeWidth={2} />
                 <span className="tabular">{site.phone.label}</span>
-              </a>
+              </PhoneLink>
               <CallbackButton className="mt-0.5 ml-[1.5rem] block text-[13px] font-medium text-brand-600 transition-colors hover:text-brand-800 hover:underline">
                 Замовити дзвінок
               </CallbackButton>
@@ -143,13 +144,13 @@ export async function Header() {
             <Link href="/" aria-label="AutoFlex — на головну" className="mr-auto shrink-0">
               <Logo className="h-7 w-auto" />
             </Link>
-            <a
+            <PhoneLink
               href={site.phone.href}
               aria-label={`Зателефонувати: ${site.phone.label}`}
               className="grid size-10 place-content-center rounded-full text-ink transition-colors hover:bg-mist hover:text-brand-700"
             >
               <Phone aria-hidden className="size-6" strokeWidth={1.75} />
-            </a>
+            </PhoneLink>
             <CartLink />
           </div>
           <div className="pb-3">
