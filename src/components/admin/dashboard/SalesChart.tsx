@@ -135,25 +135,29 @@ export function SalesChart({ data }: { data: DaySales[] }) {
         </svg>
       )}
 
-      <table className="sr-only">
-        <caption>Виручка та маржа за день, останні 30 днів</caption>
-        <thead>
-          <tr>
-            <th scope="col">Дата</th>
-            <th scope="col">Виручка</th>
-            <th scope="col">Маржа</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((d) => (
-            <tr key={d.day}>
-              <th scope="row">{formatDate(d.day)}</th>
-              <td>{formatPrice(d.revenue)}</td>
-              <td>{formatPrice(d.margin)}</td>
+      {/* sr-only on the <table> itself leaves it 700+px tall (tables ignore height: 1px) and that
+          overflow extends the page scroll; a hidden wrapper clips it for real */}
+      <div className="sr-only">
+        <table>
+          <caption>Виручка та маржа за день, останні 30 днів</caption>
+          <thead>
+            <tr>
+              <th scope="col">Дата</th>
+              <th scope="col">Виручка</th>
+              <th scope="col">Маржа</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.day}>
+                <th scope="row">{formatDate(d.day)}</th>
+                <td>{formatPrice(d.revenue)}</td>
+                <td>{formatPrice(d.margin)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

@@ -80,25 +80,29 @@ export function StatusMixChart({ counts }: { counts: StatusCounts }) {
         })}
       </ul>
 
-      <table className="sr-only">
-        <caption>Відкриті замовлення за статусом</caption>
-        <thead>
-          <tr>
-            <th scope="col">Статус</th>
-            <th scope="col">Кількість</th>
-            <th scope="col">Частка</th>
-          </tr>
-        </thead>
-        <tbody>
-          {open.map((status) => (
-            <tr key={status}>
-              <th scope="row">{orderStatusMeta[status].label}</th>
-              <td>{counts[status].count}</td>
-              <td>{Math.round((counts[status].count / total) * 100)}%</td>
+      {/* sr-only on the <table> itself leaves it 700+px tall (tables ignore height: 1px) and that
+          overflow extends the page scroll; a hidden wrapper clips it for real */}
+      <div className="sr-only">
+        <table>
+          <caption>Відкриті замовлення за статусом</caption>
+          <thead>
+            <tr>
+              <th scope="col">Статус</th>
+              <th scope="col">Кількість</th>
+              <th scope="col">Частка</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {open.map((status) => (
+              <tr key={status}>
+                <th scope="row">{orderStatusMeta[status].label}</th>
+                <td>{counts[status].count}</td>
+                <td>{Math.round((counts[status].count / total) * 100)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
