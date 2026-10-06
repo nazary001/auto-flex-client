@@ -66,6 +66,7 @@ function EditDialog({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
   const [role, setRole] = useState<Role>(user.role);
   const [active, setActive] = useState(user.active);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -74,7 +75,7 @@ function EditDialog({
     event.preventDefault();
     setFieldErrors({});
     startTransition(async () => {
-      const result = await updateUserAction({ id: user.id, name, role, active });
+      const result = await updateUserAction({ id: user.id, name, email, role, active });
       if (result.ok) {
         toast({ title: "Користувача оновлено" });
         onClose();
@@ -91,6 +92,15 @@ function EditDialog({
       <form onSubmit={onSubmit} className="grid gap-4">
         <Field label="Ім'я" htmlFor="edit-user-name" required error={fieldErrors.name}>
           <Input id="edit-user-name" value={name} onChange={(event) => setName(event.target.value)} required />
+        </Field>
+        <Field label="Електронна адреса" htmlFor="edit-user-email" required error={fieldErrors.email}>
+          <Input
+            id="edit-user-email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
         </Field>
         <Field
           label="Роль"

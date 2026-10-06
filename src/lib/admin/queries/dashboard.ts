@@ -44,7 +44,8 @@ export interface AttentionItem {
   key: string;
   label: string;
   count: number;
-  href: string;
+  /** Destination for the row; omitted when no list can reproduce the count (row stays informational) */
+  href?: string;
   /** Soft urgency; "warn" rows are tinted on the dashboard */
   tone: "warn" | "default";
 }
@@ -132,8 +133,8 @@ export async function getDashboardData(db: Db): Promise<DashboardData> {
     { key: "overdue", label: "Прострочені закупівлі", count: overdue.length, href: "/admin/purchases", tone: "warn" },
     { key: "inTransit", label: `В дорозі > ${settings.orders.staleTransitDays} дн`, count: inTransitLong, href: "/admin/orders?status=in_transit", tone: "default" },
     { key: "onHold", label: "Очікують рішення", count: statusCounts.on_hold.count, href: "/admin/orders?status=on_hold", tone: "default" },
-    { key: "payment", label: "Очікують оплати", count: awaitingPayment, href: "/admin/orders?paymentStatus=unpaid", tone: "default" },
-    { key: "lowMargin", label: `Низька маржа < ${settings.orders.lowMarginPercent}%`, count: lowMargin, href: "/admin/orders", tone: "warn" },
+    { key: "payment", label: "Очікують оплати", count: awaitingPayment, href: "/admin/orders?view=awaiting_payment", tone: "default" },
+    { key: "lowMargin", label: `Низька маржа < ${settings.orders.lowMarginPercent}%`, count: lowMargin, tone: "warn" },
     { key: "requests", label: "Нові заявки", count: requestCounts.new, href: "/admin/requests", tone: "warn" },
     { key: "reviews", label: "Відгуки на модерації", count: pendingReviews, href: "/admin/reviews", tone: "default" },
   ];

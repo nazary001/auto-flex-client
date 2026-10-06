@@ -170,7 +170,7 @@ export async function saveProductAction(input: unknown): Promise<ActionResult<{ 
         const patch = supplierPatch(docToProduct(existing), data, slug, deliveryDays);
         if (Object.keys(patch).length > 0) await applyLocalPatch(ctx.db, id, patch);
         await ctx.audit({ action: "product.save", entity: "product", entityId: id, summary: `Товар «${data.name}» збережено (зміни постачальника)` });
-        await afterCatalogWrite(ctx.db, ["/admin/products", `/admin/products/${id}`], Object.keys(patch).some((k) => k === "categoryId" || k === "brandId"));
+        await afterCatalogWrite(ctx.db, ["/admin/products", `/admin/products/${id}`], Object.keys(patch).some((k) => k === "categoryId" || k === "brandId" || k === "fitment" || k === "universal"));
         return { id, slug };
       }
 
@@ -574,6 +574,19 @@ export async function saveCategoryAction(input: unknown): Promise<ActionResult<{
           ? { $set: { local: local as CategoryDoc["local"], updatedAt: nowIso() } }
           : { $set: { updatedAt: nowIso() }, $unset: { local: "" as const } };
         await cols(ctx.db).categories.updateOne({ _id: data.id }, update);
+        if (!isGroup) {
+          // keep the denormalized leaf name / illustration on product documents in sync with the rename
+          const prevName = doc.local?.name ?? doc.name;
+          const prevIllustration = doc.local?.illustration ?? doc.illustration;
+          const nextName = (local.name as string | undefined) ?? doc.name;
+          const nextIllustration = (local.illustration as string | undefined) ?? doc.illustration;
+          if (nextName !== prevName || nextIllustration !== prevIllustration) {
+            await cols(ctx.db).products.updateMany(
+              { categoryId: data.id },
+              { $set: { categoryName: nextName, illustration: nextIllustration, updatedAt: nowIso() } },
+            );
+          }
+        }
         await ctx.audit({ action: "category.save", entity: "category", entityId: data.id, summary: `Категорію «${data.name}» збережено` });
         await afterCatalogWrite(ctx.db, ["/admin/categories", "/admin/products"], false);
         return { id: data.id };
@@ -667,6 +680,15 @@ export async function saveBrandAction(input: unknown): Promise<ActionResult<{ id
           ? { $set: { local: local as typeof doc.local, updatedAt: nowIso() } }
           : { $set: { updatedAt: nowIso() }, $unset: { local: "" as const } };
         await cols(ctx.db).brands.updateOne({ _id: data.id }, update);
+        // keep the denormalized brand name on product documents in sync with the rename
+        const prevBrandName = doc.local?.name ?? doc.name;
+        const nextBrandName = (local.name as string | undefined) ?? doc.name;
+        if (nextBrandName !== prevBrandName) {
+          await cols(ctx.db).products.updateMany(
+            { brandId: data.id },
+            { $set: { brandName: nextBrandName, updatedAt: nowIso() } },
+          );
+        }
         await ctx.audit({ action: "brand.save", entity: "brand", entityId: data.id, summary: `Бренд «${data.name}» збережено` });
         await afterCatalogWrite(ctx.db, ["/admin/brands", "/admin/products"], false);
         return { id: data.id };

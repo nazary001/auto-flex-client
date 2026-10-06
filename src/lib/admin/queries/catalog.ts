@@ -214,16 +214,27 @@ export interface CategoryGroupOption {
   leaves: { id: string; name: string }[];
 }
 
-export async function getProductFilterOptions(): Promise<{
+/**
+ * Category groups for the admin product form and list filter. Unlike the storefront taxonomy
+ * (which hides categories with no products), this keeps every non-hidden category so a freshly
+ * created, still-empty category can be chosen and populated.
+ */
+async function adminCategoryGroupOptions(db: Db): Promise<CategoryGroupOption[]> {
+  const groups = await listAdminCategories(db);
+  return groups
+    .filter((g) => !g.hidden)
+    .map((g) => ({
+      id: g.id,
+      name: g.name,
+      leaves: g.leaves.filter((l) => !l.hidden).map((l) => ({ id: l.id, name: l.name })),
+    }));
+}
+
+export async function getProductFilterOptions(db: Db): Promise<{
   groups: CategoryGroupOption[];
   brands: { id: string; name: string }[];
 }> {
-  const tax = await getTaxonomy();
-  const groups = tax.topCategories.map((g) => ({
-    id: g.id,
-    name: g.name,
-    leaves: (tax.childrenByParent.get(g.id) ?? []).map((l) => ({ id: l.id, name: l.name })),
-  }));
+  const [groups, tax] = await Promise.all([adminCategoryGroupOptions(db), getTaxonomy()]);
   return { groups, brands: tax.brands.map((b) => ({ id: b.id, name: b.name })) };
 }
 
@@ -333,12 +344,7 @@ function leafIllustrationKeys(tax: Taxonomy): string[] {
 }
 
 export async function getProductFormData(db: Db, product?: Product): Promise<ProductFormData> {
-  const [tax, settings] = await Promise.all([getTaxonomy(), getSettings(db)]);
-  const categoryGroups = tax.topCategories.map((g) => ({
-    id: g.id,
-    name: g.name,
-    leaves: (tax.childrenByParent.get(g.id) ?? []).map((l) => ({ id: l.id, name: l.name })),
-  }));
+  const [tax, settings, categoryGroups] = await Promise.all([getTaxonomy(), getSettings(db), adminCategoryGroupOptions(db)]);
   const fitMakeIds = new Set((product?.fitment ?? []).map((f) => f.makeId));
   const initialModels = tax.models
     .filter((m) => fitMakeIds.has(m.makeId))

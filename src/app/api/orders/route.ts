@@ -5,6 +5,7 @@ import { formatPhone, formatPrice, isValidUaPhone, normalizePhone } from "@/lib/
 import { getProductDoc } from "@/lib/server/catalog/products";
 import { docToProduct } from "@/lib/server/catalog/product-doc";
 import { getDb } from "@/lib/server/db/client";
+import { recordAudit } from "@/lib/server/db/repos/audit";
 import { addOrderEvent, createOrder } from "@/lib/server/db/repos/orders";
 import { DEFAULT_SETTINGS, getSettings } from "@/lib/server/db/repos/settings";
 import { clean, notifyManagers } from "@/lib/server/notify";
@@ -180,6 +181,23 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[AutoFlex] Не вдалося зберегти замовлення в базі", error);
     orderNumber = `AF-${dateStamp()}-${randomInt(1000, 10000)}`;
+  }
+
+  // Record the placement under the «Сайт» actor in the audit log. Best effort — a failed audit
+  // write must never break an order that is already saved.
+  if (orderId) {
+    try {
+      await recordAudit(db, {
+        actor: STOREFRONT_ACTOR,
+        action: "order.create",
+        entity: "order",
+        entityId: orderId,
+        summary: `Замовлення ${orderNumber} оформлено на сайті`,
+        data: { total },
+      });
+    } catch (error) {
+      console.error("[AutoFlex] Не вдалося записати подію замовлення в журнал", error);
+    }
   }
 
   // 2. Notify (best effort once the order is stored; mandatory when it could not be stored)

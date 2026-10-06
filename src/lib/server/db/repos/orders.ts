@@ -18,7 +18,7 @@ import type {
   Paging,
 } from "@/lib/admin/types";
 import { cols, type OrderDoc } from "../collections";
-import { compact, containsRegex, dateRange, daysAgoIso, newId, nextSequence, nowIso, paginate } from "../util";
+import { compact, containsRegex, dateRange, daysAgoIso, kyivToday, newId, nextSequence, nowIso, paginate } from "../util";
 import { recomputeStats, upsertFromOrder } from "./customers";
 import { bestOfferFor } from "./offers";
 
@@ -361,7 +361,10 @@ export async function updateOrder(
   const next = compact({ ...merged, ...totals }) as Order;
   await cols(db).orders.replaceOne({ _id: id }, toOrderDoc(next));
   if (event) await addOrderEvent(db, id, event.type, actor, event.text, event.data, { at: event.at ?? merged.updatedAt });
-  if (patch.status && patch.status !== current.status && next.customer.customerId) {
+  // Customer aggregates (ordersCount / totalSpent) depend on the order's status and total, so
+  // recompute whenever either changed — editing lines/discounts moves the total without a status change.
+  const statusChanged = Boolean(patch.status && patch.status !== current.status);
+  if ((statusChanged || next.total !== current.total) && next.customer.customerId) {
     await recomputeStats(db, next.customer.customerId);
   }
   return next;
@@ -470,7 +473,7 @@ export interface DaySales {
   margin: number;
 }
 
-/** Orders per calendar day for the last N days (revenue statuses only), zero-filled */
+/** Orders per calendar day (Europe/Kyiv) for the last N days (revenue statuses only), zero-filled */
 export async function salesByDay(db: Db, days: number): Promise<DaySales[]> {
   const since = daysAgoIso(days - 1);
   const rows = await cols(db)
@@ -478,7 +481,15 @@ export async function salesByDay(db: Db, days: number): Promise<DaySales[]> {
       { $match: { createdAt: { $gte: since }, status: { $in: REVENUE_ORDER_STATUSES } } },
       {
         $group: {
-          _id: { $substrBytes: ["$createdAt", 0, 10] },
+          // Stamp each order by its Kyiv calendar day, so the buckets line up with how the dates are
+          // displayed (and with the Kyiv-anchored `since` boundary) rather than by the UTC day.
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: { $dateFromString: { dateString: "$createdAt" } },
+              timezone: "Europe/Kyiv",
+            },
+          },
           orders: { $sum: 1 },
           revenue: { $sum: "$total" },
           margin: { $sum: { $cond: ["$marginKnown", "$margin", 0] } },
@@ -488,12 +499,13 @@ export async function salesByDay(db: Db, days: number): Promise<DaySales[]> {
     .toArray();
   const byDay = new Map(rows.map((r) => [r._id, r]));
   const out: DaySales[] = [];
-  const cursor = new Date(since);
-  for (let i = 0; i < days; i++) {
-    const day = cursor.toISOString().slice(0, 10);
+  const [ty, tm, td] = kyivToday();
+  for (let i = days - 1; i >= 0; i--) {
+    // Pure calendar arithmetic (UTC midnight read back as a date), so each label is a Kyiv calendar
+    // day that matches the group keys above.
+    const day = new Date(Date.UTC(ty, tm - 1, td - i)).toISOString().slice(0, 10);
     const row = byDay.get(day);
     out.push({ day, orders: row?.orders ?? 0, revenue: row?.revenue ?? 0, margin: row?.margin ?? 0 });
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return out;
 }

@@ -19,9 +19,11 @@ import {
 const MAX_IMPORT_BYTES = 8 * 1024 * 1024;
 import {
   createPurchaseOrder,
+  propagateDirectShipmentTracking,
   setPurchaseOrderStatus,
   updatePurchaseOrder,
 } from "@/lib/server/db/repos/purchase-orders";
+import { getOrders } from "@/lib/server/db/repos/orders";
 import { createSupplier, DuplicateSupplierCodeError, getSupplier, updateSupplier } from "@/lib/server/db/repos/suppliers";
 import { deleteOffer, normalizeSku, upsertOffers, type OfferInput } from "@/lib/server/db/repos/offers";
 
@@ -108,6 +110,25 @@ export async function createPurchaseOrdersAction(
     schema: createPurchaseOrdersSchema,
     input,
     run: async ({ groups }, ctx) => {
+      // Validate the whole batch before writing anything: creating a PO marks its order lines and
+      // there is no transaction, so a failure on a later group would otherwise orphan earlier POs.
+      const batchOrders = await getOrders(ctx.db, [...new Set(groups.flatMap((g) => g.lines.map((l) => l.orderId)))]);
+      const orderById = new Map(batchOrders.map((o) => [o.id, o]));
+      const claimed = new Set<string>();
+      for (const group of groups) {
+        const supplier = await getSupplier(ctx.db, group.supplierId);
+        if (!supplier) throw new ActionError("Постачальника не знайдено.");
+        for (const { orderId, orderLineId } of group.lines) {
+          const line = orderById.get(orderId)?.lines.find((l) => l.id === orderLineId);
+          if (!line) throw new ActionError("Позицію замовлення не знайдено.");
+          if (line.purchaseOrderId) throw new ActionError(`Позиція «${line.name}» уже в закупівлі.`);
+          if (line.fulfillment === "cancelled") throw new ActionError(`Позиція «${line.name}» скасована.`);
+          const key = `${orderId}:${orderLineId}`;
+          if (claimed.has(key)) throw new ActionError(`Позиція «${line.name}» додана до двох закупівель.`);
+          claimed.add(key);
+        }
+      }
+
       const ids: string[] = [];
       const orderIds = new Set<string>();
       for (const group of groups) {
@@ -135,6 +156,7 @@ export async function createPurchaseOrdersAction(
       }
       revalidatePath("/admin/purchases");
       revalidatePath("/admin/orders");
+      revalidatePath("/admin/suppliers");
       for (const id of ids) revalidatePath(`/admin/purchases/${id}`);
       for (const orderId of orderIds) revalidatePath(`/admin/orders/${orderId}`);
       return { ids, firstId: ids[0] ?? null };
@@ -166,6 +188,7 @@ export async function setPurchaseOrderStatusAction(input: unknown): Promise<Acti
       revalidatePath("/admin/purchases");
       revalidatePath(`/admin/purchases/${po.id}`);
       revalidatePath("/admin/orders");
+      revalidatePath("/admin/suppliers");
       for (const orderId of new Set(po.lines.map((l) => l.orderId))) revalidatePath(`/admin/orders/${orderId}`);
       return { status: po.status };
     },
@@ -189,6 +212,8 @@ export async function updatePurchaseOrderAction(input: unknown): Promise<ActionR
     run: async ({ id, supplierRef, trackingNumber, expectedAt, notes, shipDirect }, ctx) => {
       const po = await updatePurchaseOrder(ctx.db, id, { supplierRef, trackingNumber, expectedAt, notes, shipDirect });
       if (!po) throw new ActionError("Закупівлю не знайдено.");
+      // A drop-ship parcel may ship with an empty TTN and get its number here — carry it to the orders.
+      await propagateDirectShipmentTracking(ctx.db, po, ctx.actor);
       await ctx.audit({
         action: "po.update",
         entity: "purchase_order",
@@ -197,6 +222,8 @@ export async function updatePurchaseOrderAction(input: unknown): Promise<ActionR
       });
       revalidatePath("/admin/purchases");
       revalidatePath(`/admin/purchases/${po.id}`);
+      revalidatePath("/admin/orders");
+      for (const orderId of new Set(po.lines.map((l) => l.orderId))) revalidatePath(`/admin/orders/${orderId}`);
       return undefined;
     },
   });
@@ -322,6 +349,7 @@ export async function upsertOfferAction(input: unknown): Promise<ActionResult<un
         summary: `Прайс ${supplier.code}: ${sku} — ${cost} ₴`,
         data: { sku, cost, availability },
       });
+      revalidatePath("/admin/suppliers");
       revalidatePath(`/admin/suppliers/${supplierId}`);
       return undefined;
     },
@@ -344,6 +372,7 @@ export async function deleteOfferAction(input: unknown): Promise<ActionResult<un
         summary: "Позицію прайсу видалено",
         data: { offerId: id },
       });
+      revalidatePath("/admin/suppliers");
       revalidatePath(`/admin/suppliers/${supplierId}`);
       return undefined;
     },
@@ -440,6 +469,7 @@ export async function importOffersAction(formData: FormData): Promise<ActionResu
         summary: `Імпорт прайсу ${supplier.code}: +${inserted}, оновлено ${updated}, пропущено ${skipped.length}`,
         data: { inserted, updated, skipped: skipped.length },
       });
+      revalidatePath("/admin/suppliers");
       revalidatePath(`/admin/suppliers/${supplierId}`);
       return { inserted, updated, skipped };
     },

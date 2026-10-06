@@ -11,7 +11,7 @@ import type { CallbackKind } from "@/lib/types";
 import { getProductsByIds } from "@/lib/catalog";
 import { requireUser } from "@/lib/server/auth/dal";
 import { getDb } from "@/lib/server/db/client";
-import { countRequestsByStatus, listRequests } from "@/lib/server/db/repos/requests";
+import { countRequestsByStatus, getRequest, listRequests } from "@/lib/server/db/repos/requests";
 import { listUsers } from "@/lib/server/db/repos/users";
 
 export const metadata: Metadata = { title: "Заявки" };
@@ -62,7 +62,16 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
     listUsers(db),
   ]);
 
-  const productIds = [...new Set(pageData.items.map((r) => r.productId).filter((v): v is string => Boolean(v)))];
+  // A deep-link (?focus=…) from e.g. a customer card may target a request that is not on this page
+  // (older than the newest 25). Fetch it so it can be pinned above the list instead of silently missing.
+  const focusInPage = focus ? pageData.items.some((r) => r.id === focus) : true;
+  const pinned = focus && !focusInPage ? await getRequest(db, focus) : null;
+
+  const productIds = [
+    ...new Set(
+      [...pageData.items, ...(pinned ? [pinned] : [])].map((r) => r.productId).filter((v): v is string => Boolean(v)),
+    ),
+  ];
   const products = await getProductsByIds(productIds);
   const slugById = new Map(products.map((p) => [p.id, p.slug]));
 
@@ -114,6 +123,21 @@ export default async function RequestsPage({ searchParams }: { searchParams: Pro
           </FilterBar>
         </div>
       </PageHeader>
+
+      {pinned && (
+        <div className="mb-3">
+          <RequestCard
+            request={pinned}
+            assigneeName={pinned.assigneeId ? userName.get(pinned.assigneeId) : undefined}
+            productHref={
+              pinned.productId && slugById.get(pinned.productId) ? `/product/${slugById.get(pinned.productId)}` : undefined
+            }
+            users={activeUsers}
+            canWrite={canWrite}
+            focused
+          />
+        </div>
+      )}
 
       {pageData.items.length === 0 ? (
         <EmptyState

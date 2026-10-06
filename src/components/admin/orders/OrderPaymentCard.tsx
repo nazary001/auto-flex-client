@@ -97,9 +97,17 @@ export function OrderPaymentCard({ order, canWrite }: OrderPaymentCardProps) {
                 size="sm"
                 disabled={pending}
                 onClick={() =>
-                  run(() => updatePaymentAction({ id: order.id, status: "paid", paidAmount: order.total }), {
-                    success: "Позначено оплаченим",
-                  })
+                  run(
+                    () =>
+                      updatePaymentAction({
+                        id: order.id,
+                        status: "paid",
+                        paidAmount: order.total,
+                        paymentLink: order.payment.paymentLink,
+                        invoiceNumber: order.payment.invoiceNumber,
+                      }),
+                    { success: "Позначено оплаченим" },
+                  )
                 }
               >
                 Позначити оплаченим

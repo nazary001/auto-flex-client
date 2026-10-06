@@ -644,7 +644,7 @@ export async function runDdTuningSync(db: Db, options: SyncOptions = {}): Promis
             resolveBrand: (m, c) => registry.resolveBrand(m, c),
             resolveVehicle: (p) => registry.resolveVehicle(p),
           };
-          const built = await buildAllProducts(db, run, ctx, async () => {
+          const built = await buildAllProducts(db, run, ctx, registry, async () => {
             if (overBudget()) return false;
             return true;
           });
@@ -749,7 +749,7 @@ interface BuildStats {
   complete: boolean;
 }
 
-async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, mayContinue: () => Promise<boolean>): Promise<BuildStats> {
+async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, registry: TaxonomyRegistry, mayContinue: () => Promise<boolean>): Promise<BuildStats> {
   const staging = cols(db).staging;
   const stats: BuildStats = { products: run.counters.products ?? 0, groups: run.counters.groups ?? 0, complete: false };
   if (run.offset === 0) {
@@ -775,6 +775,7 @@ async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, mayC
       const prev = existing.get(productIdFor(input));
       const built = buildProduct(input, ctx, prev?.createdAt);
       const effective: Product = applyLocalOverrides(built.product, prev?.local);
+      denormalizeTaxonomy(effective, registry);
       if (prev) {
         effective.rating = prev.rating ?? 0;
         effective.reviewsCount = prev.reviewsCount ?? 0;
@@ -934,6 +935,23 @@ interface Rebuilder {
 }
 
 /**
+ * A local override can move a product to a different category or brand than the supplier's. The
+ * denormalized group / names / illustration must follow the EFFECTIVE id, otherwise the product is
+ * grouped and labelled under the old category/brand and the leaf and group taxonomy counts diverge.
+ * Re-derives them from the registry after the overrides have been applied.
+ */
+function denormalizeTaxonomy(product: Product, registry: TaxonomyRegistry): void {
+  const category = registry.categories.get(product.categoryId);
+  if (category) {
+    product.categoryName = category.local?.name ?? category.name;
+    product.illustration = category.local?.illustration ?? category.illustration;
+    product.groupId = category.parentId ?? category._id;
+  }
+  const brand = registry.brands.get(product.brandId);
+  if (brand) product.brandName = brand.local?.name ?? brand.name;
+}
+
+/**
  * Prepares a rebuilder that recomputes the effective product of supplier documents from their
  * stored items with the current settings. The stored category / vehicle references are kept,
  * so the result is stable without calling the API.
@@ -974,6 +992,7 @@ async function createRebuilder(db: Db): Promise<Rebuilder> {
       };
       const built = buildProduct(input, ctx, doc.createdAt);
       const effective = applyLocalOverrides(built.product, options.keepLocal ? doc.local : undefined);
+      denormalizeTaxonomy(effective, registry);
       effective.rating = doc.rating;
       effective.reviewsCount = doc.reviewsCount;
       effective.slug = doc.local?.slug ?? doc.slug;

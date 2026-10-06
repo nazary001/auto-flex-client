@@ -30,7 +30,7 @@ export const PO_TRANSITIONS: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> 
   confirmed: ["sent", "shipped", "received", "cancelled"],
   shipped: ["confirmed", "received", "cancelled"],
   received: ["shipped"],
-  cancelled: ["draft"],
+  cancelled: [],
 };
 
 export function canTransitionPo(from: PurchaseOrderStatus, to: PurchaseOrderStatus): boolean {
@@ -231,8 +231,6 @@ export async function setPurchaseOrderStatus(
     await setLinesFulfillmentByPurchaseOrder(db, id, updated.shipDirect ? "delivered" : "shipped", actor, label);
   } else if (to === "cancelled") {
     await setLinesFulfillmentByPurchaseOrder(db, id, "pending", actor, label, { detach: true });
-  } else if (to === "draft" && current.status === "cancelled") {
-    // Re-opened: lines are attached again below via markLinesOrdered semantics is not needed; keep detached state
   } else {
     await setLinesFulfillmentByPurchaseOrder(db, id, "ordered", actor, label);
   }
@@ -269,6 +267,17 @@ async function syncDirectShipment(db: Db, po: PurchaseOrder, to: "shipped" | "re
     if (to === "received" && allIn(["delivered"])) await advanceOrderTo(db, current, "delivered", actor);
     else if (allIn(["shipped", "delivered"])) await advanceOrderTo(db, current, "in_transit", actor);
   }
+}
+
+/**
+ * Carries a drop-ship purchase order's tracking number onto its orders when the number is added or
+ * changed after shipping — the ship dialog lets a parcel go out with an empty TTN and the details
+ * form fills it in later. Safe to call repeatedly: orders that already carry a number keep it.
+ */
+export async function propagateDirectShipmentTracking(db: Db, po: PurchaseOrder, actor: Actor): Promise<void> {
+  if (!po.shipDirect || !po.trackingNumber) return;
+  if (po.status !== "shipped" && po.status !== "received") return;
+  await syncDirectShipment(db, po, po.status, actor);
 }
 
 /** Purchase orders waiting at the supplier longer than its maximum lead time */

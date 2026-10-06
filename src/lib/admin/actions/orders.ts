@@ -277,6 +277,19 @@ export async function updateOrderAction(input: unknown): Promise<ActionResult<{ 
       if (body.delivery.cost !== undefined) delivery.cost = body.delivery.cost;
       if (body.delivery.costPayer !== undefined) delivery.costPayer = body.delivery.costPayer;
 
+      // Persist the submitted payment fields (status / paid amount / link / invoice), the same way
+      // updatePaymentAction does — keeping only `method` would silently drop the manager's edits.
+      const payStatus = body.payment.status ?? current.payment.status;
+      const payment = compact({
+        ...current.payment,
+        method: body.payment.method,
+        status: payStatus,
+        paidAmount: body.payment.paidAmount ?? (payStatus === "paid" ? current.total : current.payment.paidAmount),
+        paidAt: payStatus === "paid" || payStatus === "prepaid" ? (current.payment.paidAt ?? nowIso()) : undefined,
+        paymentLink: body.payment.paymentLink,
+        invoiceNumber: body.payment.invoiceNumber,
+      });
+
       const patch: Partial<Order> = {
         customer: compact({
           customerId: current.customer.customerId,
@@ -286,7 +299,7 @@ export async function updateOrderAction(input: unknown): Promise<ActionResult<{ 
           email: body.customer.email,
         }),
         delivery: compact(delivery),
-        payment: { ...current.payment, method: body.payment.method },
+        payment,
         lines,
         orderDiscount: body.orderDiscount ?? current.orderDiscount,
         comment: body.comment,

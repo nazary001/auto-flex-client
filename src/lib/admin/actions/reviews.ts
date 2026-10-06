@@ -66,7 +66,8 @@ export async function updateReviewAction(input: unknown): Promise<ActionResult<u
         author,
         rating,
         text,
-        car: car || undefined,
+        // Pass an emptied car through as "" so the repo can clear it (collapsing to undefined would ignore it).
+        car,
         ...(date ? { date: date.slice(0, 10) } : {}),
       });
       if (!review) throw new ActionError("Відгук не знайдено.");

@@ -62,7 +62,9 @@ export function SalesChart({ data }: { data: DaySales[] }) {
   const xCenter = (i: number) => M.left + band * i + band / 2;
   const yFor = (v: number) => M.top + PLOT_H * (1 - v / scaleMax);
 
-  const marginPoints = data.map((d, i) => `${xCenter(i).toFixed(1)},${yFor(d.margin).toFixed(1)}`).join(" ");
+  // The axis floor is 0; a loss day (margin < 0) is clamped to the baseline so the line stays in
+  // the plot instead of spilling over the x-axis labels. The true value still shows in the tooltip.
+  const marginPoints = data.map((d, i) => `${xCenter(i).toFixed(1)},${yFor(Math.max(0, d.margin)).toFixed(1)}`).join(" ");
   const lastIndex = data.length - 1;
 
   return (

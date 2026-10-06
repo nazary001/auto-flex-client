@@ -1,4 +1,5 @@
 import type { Db } from "mongodb";
+import { OPEN_ORDER_STATUSES } from "@/lib/admin/labels";
 import { cols } from "../collections";
 
 export interface SidebarCounts {
@@ -18,7 +19,8 @@ export async function getSidebarCounts(db: Db): Promise<SidebarCounts> {
     c.requests.countDocuments({ status: "new" }),
     c.reviews.countDocuments({ status: "pending" }),
     c.orders.countDocuments({
-      status: { $in: ["new", "confirmed", "sourcing", "on_hold"] },
+      // Same open-order set as the dashboard «Очікують закупівлі» and the orders needsSourcing filter
+      status: { $in: OPEN_ORDER_STATUSES },
       lines: { $elemMatch: { fulfillment: "pending", purchaseOrderId: { $exists: false } } },
     }),
   ]);

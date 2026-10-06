@@ -68,6 +68,7 @@ export async function createUserAction(input: unknown): Promise<ActionResult<{ i
 const updateUserSchema = z.object({
   id: idSchema,
   name: z.string().trim().min(2, "Вкажіть ім'я.").max(80).optional(),
+  email: z.email("Перевірте електронну адресу.").trim().max(120).optional(),
   role: roleSchema.optional(),
   active: z.boolean().optional(),
 });
@@ -91,11 +92,18 @@ export async function updateUserAction(input: unknown): Promise<ActionResult> {
           throw new ActionError("Це останній активний власник — його не можна понизити чи вимкнути.");
         }
       }
-      const updated = await updateUser(ctx.db, data.id, {
-        name: data.name,
-        role: data.role,
-        active: data.active,
-      });
+      let updated: Awaited<ReturnType<typeof updateUser>> = null;
+      try {
+        updated = await updateUser(ctx.db, data.id, {
+          name: data.name,
+          email: data.email,
+          role: data.role,
+          active: data.active,
+        });
+      } catch (error) {
+        if (error instanceof DuplicateEmailError) throw new ActionError(error.message, { email: error.message });
+        throw error;
+      }
       if (!updated) throw new ActionError("Користувача не знайдено.");
       await ctx.audit({
         action: "user.update",

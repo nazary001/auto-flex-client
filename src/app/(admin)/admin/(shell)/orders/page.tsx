@@ -289,7 +289,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           <SegmentedLinks items={views} ariaLabel="Збережені подання" />
           <FilterBar
             action="/admin/orders"
-            hidden={{ view }}
+            hidden={{ view, ...(sort !== "newest" ? { sort } : {}) }}
             resetHref={`/admin/orders?view=${view}`}
           >
             <FilterSelect

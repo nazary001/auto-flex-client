@@ -66,7 +66,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   };
   const page = Math.max(1, Number(first(sp.page)) || 1);
 
-  const [result, options] = await Promise.all([listAdminProducts(db, filter, page), getProductFilterOptions()]);
+  const [result, options] = await Promise.all([listAdminProducts(db, filter, page), getProductFilterOptions(db)]);
 
   const activeFilter = Boolean(filter.q || filter.category || filter.brand || filter.stock || filter.badge || filter.state);
 

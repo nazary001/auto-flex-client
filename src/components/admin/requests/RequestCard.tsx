@@ -186,6 +186,14 @@ export function RequestCard({ request, assigneeName, productHref, users, canWrit
         )
       )}
 
+      {request.orderId && (
+        <p className="mt-3 text-sm">
+          <Link href={`/admin/orders/${request.orderId}`} className="link font-medium">
+            Перейти до замовлення
+          </Link>
+        </p>
+      )}
+
       {canWrite && (
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line-soft pt-3">
           {request.status === "new" && (

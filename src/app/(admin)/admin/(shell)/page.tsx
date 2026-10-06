@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Card, KpiTile, PageHeader } from "@/components/admin/ui";
+import { Alert, Card, KpiTile, PageHeader } from "@/components/admin/ui";
 import { countUk, formatPrice } from "@/lib/format";
 import { getDashboardData } from "@/lib/admin/queries/dashboard";
 import { requireUser } from "@/lib/server/auth/dal";
@@ -15,8 +15,12 @@ export const metadata: Metadata = { title: "Дашборд" };
 
 const ORDERS_FORMS: [string, string, string] = ["замовлення", "замовлення", "замовлень"];
 
-export default async function DashboardPage() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   await requireUser("orders:read");
+  const sp = await searchParams;
+  const denied = (Array.isArray(sp.denied) ? sp.denied[0] : sp.denied) === "1";
   const db = await getDb();
   const data = await getDashboardData(db);
   const { kpis, statusCounts } = data;
@@ -29,9 +33,16 @@ export default async function DashboardPage() {
     revTrend === null ? "немає даних за попередній тиждень" : revTrend === 0 ? "без змін" : undefined;
   const marginKnownPct = kpis.revenue30 > 0 ? Math.round((kpis.marginKnownRevenue30 / kpis.revenue30) * 100) : 0;
   const totalOrders = Object.values(statusCounts).reduce((sum, s) => sum + s.count, 0);
+  // Today's date in Kyiv (business day), so the tile drills into today's orders via the list's date filter
+  const todayKyiv = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Kyiv" }).format(new Date());
 
   return (
     <div>
+      {denied && (
+        <Alert tone="warning" title="Немає доступу" className="mb-4">
+          У вас немає прав для перегляду цієї сторінки.
+        </Alert>
+      )}
       <PageHeader title="Дашборд" description="Операційний огляд магазину" />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -39,7 +50,7 @@ export default async function DashboardPage() {
           label="Замовлення сьогодні"
           value={kpis.ordersToday}
           delta={{ value: ordersDelta, label: "проти вчора" }}
-          href="/admin/orders?status=new"
+          href={`/admin/orders?from=${todayKyiv}`}
         />
         <KpiTile label="Виручка за 7 днів" value={formatPrice(kpis.revenue7)} delta={revDelta} hint={revHint} />
         <KpiTile

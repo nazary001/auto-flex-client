@@ -84,12 +84,47 @@ export async function paginate<TDoc extends Document, TOut>(
   return { items: docs.map((doc) => map(doc as TDoc)), total, page, perPage: paging.perPage, pageCount };
 }
 
-/** Start of the day N days ago (local time), as ISO */
+/*
+ * The business day is Europe/Kyiv (the same zone <DateTime> displays in), not the server's local
+ * zone — on Vercel the runtime is UTC, which would otherwise bucket the first 2-3 h of a Kyiv day
+ * into the previous day. daysAgoIso returns Kyiv-local midnight as a UTC ISO instant.
+ */
+const KYIV_TZ = "Europe/Kyiv";
+
+const kyivParts = new Intl.DateTimeFormat("en-US", {
+  timeZone: KYIV_TZ,
+  hourCycle: "h23",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+/** Kyiv UTC offset in minutes at the given instant (120 in winter EET, 180 in summer EEST). */
+function kyivOffsetMinutes(at: Date): number {
+  const parts = kyivParts.formatToParts(at);
+  const n = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  const asUtc = Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute"), n("second"));
+  return Math.round((asUtc - at.getTime()) / 60000);
+}
+
+/** Start of the day N days ago in Europe/Kyiv, as a UTC ISO string */
 export function daysAgoIso(days: number): string {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - days);
-  return d.toISOString();
+  const [y, m, d] = kyivToday();
+  // Kyiv wall-clock midnight of (today − days) treated as UTC, then shifted by the Kyiv offset on
+  // that day. DST switches happen at 03:00/04:00 local, never at midnight, so the offset is stable.
+  const wallMidnight = Date.UTC(y, m - 1, d - days, 0, 0, 0, 0);
+  const offset = kyivOffsetMinutes(new Date(wallMidnight));
+  return new Date(wallMidnight - offset * 60000).toISOString();
+}
+
+/** Today's calendar date in Europe/Kyiv as [year, month (1-12), day] */
+export function kyivToday(): [number, number, number] {
+  const parts = kyivParts.formatToParts(new Date());
+  const n = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  return [n("year"), n("month"), n("day")];
 }
 
 /** ISO range filter for a `createdAt`-like string field; `to` is inclusive of the whole day */

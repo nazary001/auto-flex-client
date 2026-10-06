@@ -69,7 +69,13 @@ export async function updateReview(
   id: string,
   patch: Partial<Pick<ModeratedReview, "author" | "rating" | "text" | "car" | "date">>,
 ): Promise<ModeratedReview | null> {
-  const doc = await cols(db).reviews.findOneAndUpdate({ _id: id }, { $set: compact({ ...patch }) }, { returnDocument: "after" });
+  const { car, ...rest } = patch;
+  const $set = compact({ ...rest }) as Record<string, unknown>;
+  // An explicit empty car clears the field; a non-empty value is stored; undefined leaves it unchanged.
+  if (car !== undefined && car !== "") $set.car = car;
+  const update: Record<string, unknown> = { $set };
+  if (car === "") update.$unset = { car: "" };
+  const doc = await cols(db).reviews.findOneAndUpdate({ _id: id }, update, { returnDocument: "after" });
   if (doc) await recomputeProductRating(db, doc.productId);
   return doc ? toReview(doc) : null;
 }

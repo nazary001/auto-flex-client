@@ -96,6 +96,16 @@ interface ProductsTableProps {
 export function ProductsTable({ rows, canWrite }: ProductsTableProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  // Pagination and filtering swap the rendered rows while this client component stays mounted.
+  // Reset the selection when the row set changes (adjusting state during render, as React advises)
+  // so the bulk bar never acts on rows that are no longer on screen.
+  const rowsKey = rows.map((r) => r.id).join(",");
+  const [prevRowsKey, setPrevRowsKey] = useState(rowsKey);
+  if (rowsKey !== prevRowsKey) {
+    setPrevRowsKey(rowsKey);
+    setSelected(new Set());
+  }
+
   function toggle(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
