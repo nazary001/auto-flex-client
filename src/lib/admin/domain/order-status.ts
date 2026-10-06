@@ -132,7 +132,8 @@ export function suggestNextStep(order: Order): { status: OrderStatus; label: str
         : { status: "in_transit", label: "Позначити відправленим" };
     case "sourcing": {
       const active = order.lines.filter((line) => line.fulfillment !== "cancelled");
-      const allShipped = active.length > 0 && active.every((line) => line.fulfillment === "shipped");
+      const allShipped =
+        active.length > 0 && active.every((line) => line.fulfillment === "shipped" || line.fulfillment === "delivered");
       return allShipped ? { status: "in_transit", label: "Позначити відправленим" } : null;
     }
     case "in_transit":
