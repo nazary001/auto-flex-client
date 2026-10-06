@@ -10,6 +10,7 @@ import { Modal } from "@/components/ui/Modal";
 import { QtyStepper } from "@/components/ui/QtyStepper";
 import { cn } from "@/lib/cn";
 import { canBuy, discountPercent, formatDeliveryDays, formatPrice } from "@/lib/format";
+import { cartItemToAnalytics, trackAddToCart, trackViewItem } from "@/lib/analytics";
 import { toast, toCartItem, useCartStore } from "@/lib/store";
 import type { ProductCardData } from "@/lib/types";
 import { setVariantImage } from "./variant-image";
@@ -36,6 +37,11 @@ export function BuyBox({ product }: { product: ProductCardData }) {
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [showSticky, setShowSticky] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
+
+  // view_item once per product page
+  useEffect(() => {
+    trackViewItem(cartItemToAnalytics({ ...toCartItem(product), qty: 1 }));
+  }, [product]);
 
   useEffect(() => {
     if (!added) return;
@@ -81,6 +87,7 @@ export function BuyBox({ product }: { product: ProductCardData }) {
 
   function addToCart() {
     add(toCartItem(product, optionValue), qty);
+    trackAddToCart(cartItemToAnalytics({ ...toCartItem(product, optionValue), qty }));
     setAdded(true);
     toast({
       title: "Додано до кошика",

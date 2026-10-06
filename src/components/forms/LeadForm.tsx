@@ -6,6 +6,7 @@ import { CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
 import { PhoneInput } from "@/components/ui/PhoneInput";
+import { trackEvent } from "@/lib/analytics";
 import { postJson } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { formatPhone, isValidUaPhone } from "@/lib/format";
@@ -95,6 +96,7 @@ export function LeadForm({
     const result = await postJson("/api/callback", payload);
     if (result.ok) {
       setStatus("sent");
+      trackEvent("form_submit", { form_kind: kind, product_id: productId });
       onSuccess?.();
     } else {
       setStatus("idle");

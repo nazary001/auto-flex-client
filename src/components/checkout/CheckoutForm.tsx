@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Car, CreditCard, Loader2, MapPin, MessageSquare, ShoppingCart, UserRound } from "lucide-react";
@@ -11,6 +11,7 @@ import { Checkbox, Field, Input, Textarea } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { useAccountSummary } from "@/lib/account/client";
+import { cartItemToAnalytics, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { postJson } from "@/lib/api";
 import { formatPhone, isValidUaPhone, normalizePhone } from "@/lib/format";
 import { useAccount, useCart, useVehicle, type LocalOrder } from "@/lib/store";
@@ -52,6 +53,14 @@ export function CheckoutForm({ deliveryMethods, paymentMethods, methodNotes }: C
   const id = useId();
   const router = useRouter();
   const { hydrated, items, count, total, clear } = useCart();
+
+  // begin_checkout once per visit of the checkout page (covers the cart button and the mini cart)
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (!hydrated || items.length === 0 || checkoutTracked.current) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(items.map(cartItemToAnalytics));
+  }, [hydrated, items]);
   const { profile, setProfile, addOrder } = useAccount();
   const { vehicle } = useVehicle();
   const { summary: account } = useAccountSummary();
@@ -164,6 +173,13 @@ export function CheckoutForm({ deliveryMethods, paymentMethods, methodNotes }: C
       email: payload.customer.email ?? "",
       city: payload.delivery.city,
       address: payload.delivery.address,
+    });
+    trackPurchase({
+      transactionId: result.orderNumber,
+      total: result.total,
+      items: items.map(cartItemToAnalytics),
+      customer: { ...payload.customer, phone: normalizePhone(v.phone) },
+      delivery: payload.delivery,
     });
     setRedirecting(true);
     clear();

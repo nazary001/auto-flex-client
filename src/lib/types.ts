@@ -214,6 +214,7 @@ export interface CartItem {
   name: string;
   sku: string;
   brandName: string;
+  categoryName?: string;
   illustration: string;
   image?: string;
   price: number;

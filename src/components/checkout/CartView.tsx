@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { RotateCcw, ShoppingCart, Trash2, X } from "lucide-react";
 import { CartLine } from "@/components/checkout/CartLine";
@@ -9,6 +9,7 @@ import { buttonClass } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { countUk } from "@/lib/format";
+import { cartItemToAnalytics, trackRemoveFromCart, trackViewCart } from "@/lib/analytics";
 import { useCart } from "@/lib/store";
 import type { CartItem } from "@/lib/types";
 
@@ -16,6 +17,14 @@ export function CartView() {
   const { hydrated, items, count, total, setQty, remove, add, clear } = useCart();
   const [undo, setUndo] = useState<CartItem | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+
+  // view_cart once per visit, after hydration (an empty cart is not a cart view)
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (!hydrated || items.length === 0 || viewed.current) return;
+    viewed.current = true;
+    trackViewCart(items.map(cartItemToAnalytics));
+  }, [hydrated, items]);
 
   // Auto-dismiss the undo banner after a few seconds
   useEffect(() => {
@@ -25,6 +34,7 @@ export function CartView() {
   }, [undo]);
 
   function handleRemove(item: CartItem) {
+    trackRemoveFromCart(cartItemToAnalytics(item));
     remove(item.key);
     setUndo(item);
   }
@@ -37,6 +47,7 @@ export function CartView() {
   }
 
   function handleClear() {
+    if (items.length) trackRemoveFromCart(items.map(cartItemToAnalytics));
     clear();
     setConfirmClear(false);
     setUndo(null);

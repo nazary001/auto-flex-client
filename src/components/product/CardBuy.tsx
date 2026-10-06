@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { QtyStepper } from "@/components/ui/QtyStepper";
 import { cn } from "@/lib/cn";
 import { canBuy, formatPrice } from "@/lib/format";
+import { cartItemToAnalytics, trackAddToCart } from "@/lib/analytics";
 import { toCartItem, toast, useCartStore } from "@/lib/store";
 import type { ProductCardData } from "@/lib/types";
 
@@ -34,6 +35,7 @@ export function CardBuy({ product, className }: { product: ProductCardData; clas
 
   function addToCart() {
     add(toCartItem(product, optionValue), qty);
+    trackAddToCart(cartItemToAnalytics({ ...toCartItem(product, optionValue), qty }));
     setAdded(true);
     setQty(1);
     toast({
