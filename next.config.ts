@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
     // Price-list / price CSV imports in the admin are uploaded through Server Actions
     serverActions: { bodySizeLimit: "8mb" },
   },
+  async rewrites() {
+    // The conventional sitemap address: app/sitemap.ts (generateSitemaps) only serves /sitemap/<id>.xml,
+    // the index lives in app/sitemap-index.xml/route.ts
+    return [{ source: "/sitemap.xml", destination: "/sitemap-index.xml" }];
+  },
   images: {
     // Vercel's image optimizer counts every distinct source image against a monthly quota; with
     // ~90 000 supplier photos crawled by bots the Hobby quota is gone in days and every photo then

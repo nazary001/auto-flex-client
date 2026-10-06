@@ -33,11 +33,38 @@ export async function countVisibleProducts(db: Db): Promise<number> {
   return cols(db).products.countDocuments(VISIBLE);
 }
 
-export async function listProductSlugs(db: Db, offset: number, limit: number): Promise<{ slug: string; updatedAt: string }[]> {
+export interface SitemapProduct {
+  slug: string;
+  updatedAt: string;
+  /** Main photo, for the image extension of the sitemap */
+  image?: string;
+}
+
+export async function listProductSlugs(db: Db, offset: number, limit: number): Promise<SitemapProduct[]> {
   const docs = await cols(db)
-    .products.find(VISIBLE, { projection: { slug: 1, updatedAt: 1 }, sort: { _id: 1 }, skip: offset, limit })
+    .products.find(VISIBLE, { projection: { slug: 1, updatedAt: 1, images: { $slice: 1 } }, sort: { _id: 1 }, skip: offset, limit })
     .toArray();
-  return docs.map((d) => ({ slug: d.slug, updatedAt: d.updatedAt }));
+  return docs.map((d) => ({ slug: d.slug, updatedAt: d.updatedAt, image: d.images?.[0] }));
+}
+
+/** Newest updatedAt inside one sitemap chunk (same filter and order as listProductSlugs) */
+export async function productChunkLastmod(db: Db, offset: number, limit: number): Promise<string | undefined> {
+  const [row] = await cols(db)
+    .products.aggregate<{ lastmod: string }>([
+      { $match: VISIBLE },
+      { $sort: { _id: 1 } },
+      { $skip: offset },
+      { $limit: limit },
+      { $group: { _id: null, lastmod: { $max: "$updatedAt" } } },
+    ])
+    .toArray();
+  return row?.lastmod;
+}
+
+/** When the supplier catalog was last synced — the taxonomy pages change with it */
+export async function catalogLastSyncAt(db: Db): Promise<string | undefined> {
+  const doc = await cols(db).meta.findOne({ _id: "catalog.lastSyncAt" });
+  return typeof doc?.value === "string" ? doc.value : undefined;
 }
 
 // ── listing ─────────────────────────────────────────────────

@@ -109,9 +109,15 @@ export async function getProductsByIds(ids: string[]): Promise<Product[]> {
 export async function countProducts(): Promise<number> {
   return q.countVisibleProducts(await getDb());
 }
-/** For the sitemap: visible product slugs in stable order */
-export async function listProductSlugs(offset: number, limit: number): Promise<{ slug: string; updatedAt: string }[]> {
+/** For the sitemap: visible product slugs (with the main photo) in stable order */
+export async function listProductSlugs(offset: number, limit: number): Promise<q.SitemapProduct[]> {
   return q.listProductSlugs(await getDb(), offset, limit);
+}
+export async function productChunkLastmod(offset: number, limit: number): Promise<string | undefined> {
+  return q.productChunkLastmod(await getDb(), offset, limit);
+}
+export async function catalogLastSyncAt(): Promise<string | undefined> {
+  return q.catalogLastSyncAt(await getDb());
 }
 export async function queryProducts(query: ProductQuery): Promise<ProductQueryResult> {
   return q.queryProducts(await getDb(), query);

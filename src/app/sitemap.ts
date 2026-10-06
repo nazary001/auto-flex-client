@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { articles } from "@/data/articles";
-import { countProducts, getBrands, getCategories, getMakes, getModels, listProductSlugs } from "@/lib/catalog";
+import { catalogLastSyncAt, countProducts, getBrands, getCategories, getMakes, getModels, listProductSlugs } from "@/lib/catalog";
 import { site } from "@/lib/site";
 import { PRODUCTS_PER_SITEMAP, sitemapCount } from "@/lib/sitemap";
 
@@ -8,13 +8,18 @@ type Entry = MetadataRoute.Sitemap[number];
 
 const url = (path: string) => `${site.url}${path}`;
 
-/**
- * Sitemap 0 holds the static pages and the whole taxonomy (categories, makes/models, brands, articles).
- * Sitemaps 1..N each hold a page of up to 20 000 product URLs — with ~80 000 products that is a handful of
- * files. Product slugs are read straight from MongoDB in a stable order, so 103 000 URLs never load at once.
+/** Each file is cached for an hour: crawlers re-read them often and a product chunk is 20 000 rows */
+export const revalidate = 3600;
+
+/*
+ * /sitemap/0.xml — static pages + the whole taxonomy (categories, makes/models, brands, articles)
+ * /sitemap/N.xml — a page of up to 20 000 product URLs, each with its main photo for Google Images
+ * /sitemap.xml   — the index listing them (app/sitemap-index.xml/route.ts, rewritten in next.config.ts)
+ *
+ * Only visible products and the taxonomy the storefront shows are listed. Cart, checkout, account,
+ * favourites, search and the back office are left out here and disallowed in robots.txt.
  */
 export async function generateSitemaps(): Promise<{ id: number }[]> {
-  // id 0 → static + taxonomy; ids 1..N → product chunks (the index at /sitemap-index.xml lists them)
   return Array.from({ length: sitemapCount(await countProducts()) }, (_, id) => ({ id }));
 }
 
@@ -23,74 +28,63 @@ export default async function sitemap({ id }: { id: Promise<string> }): Promise<
   return index === 0 ? taxonomySitemap() : productSitemap(index - 1);
 }
 
-/** One page of product URLs (chunk is 0-based). */
+/** One page of product URLs (chunk is 0-based) in the stable id order the index relies on */
 async function productSitemap(chunk: number): Promise<MetadataRoute.Sitemap> {
-  const slugs = await listProductSlugs(chunk * PRODUCTS_PER_SITEMAP, PRODUCTS_PER_SITEMAP);
-  const entries: Entry[] = slugs.map((product) => ({
+  const products = await listProductSlugs(chunk * PRODUCTS_PER_SITEMAP, PRODUCTS_PER_SITEMAP);
+  return products.map((product) => ({
     url: url(`/product/${product.slug}`),
     lastModified: new Date(product.updatedAt),
     changeFrequency: "weekly",
     priority: 0.7,
+    ...(product.image ? { images: [product.image] } : {}),
   }));
-  return entries;
 }
 
-/** Static pages + the full taxonomy (categories, makes/models, brands) + blog articles. */
+/** Static pages + the full taxonomy. Catalog-driven pages carry the last sync time; legal pages carry no date. */
 async function taxonomySitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
-  const [categories, makes, brands] = await Promise.all([getCategories(), getMakes(), getBrands()]);
+  const [categories, makes, brands, lastSync] = await Promise.all([getCategories(), getMakes(), getBrands(), catalogLastSyncAt()]);
+  const catalogDate = lastSync ? new Date(lastSync) : undefined;
+  const dated = (entry: Entry): Entry => (catalogDate ? { ...entry, lastModified: catalogDate } : entry);
 
   const staticEntries: Entry[] = [
-    { url: url("/"), lastModified: now, changeFrequency: "daily", priority: 1 },
-    { url: url("/catalog"), lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: url("/avto"), lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: url("/brands"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: url("/aktsii"), lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: url("/blog"), lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    { url: url("/karta-saitu"), lastModified: now, changeFrequency: "weekly", priority: 0.3 },
-    { url: url("/oplata-i-dostavka"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: url("/povernennia"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: url("/harantiia"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: url("/pro-nas"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: url("/spivpratsia"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: url("/kontakty"), lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: url("/dohovir-oferty"), lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: url("/polityka-konfidentsiinosti"), lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    dated({ url: url("/"), changeFrequency: "daily", priority: 1 }),
+    dated({ url: url("/catalog"), changeFrequency: "daily", priority: 0.9 }),
+    dated({ url: url("/avto"), changeFrequency: "weekly", priority: 0.8 }),
+    dated({ url: url("/brands"), changeFrequency: "weekly", priority: 0.7 }),
+    { url: url("/aktsii"), changeFrequency: "weekly", priority: 0.7 },
+    { url: url("/blog"), changeFrequency: "weekly", priority: 0.6 },
+    { url: url("/karta-saitu"), changeFrequency: "monthly", priority: 0.3 },
+    { url: url("/oplata-i-dostavka"), changeFrequency: "monthly", priority: 0.5 },
+    { url: url("/povernennia"), changeFrequency: "monthly", priority: 0.5 },
+    { url: url("/harantiia"), changeFrequency: "monthly", priority: 0.5 },
+    { url: url("/pro-nas"), changeFrequency: "monthly", priority: 0.5 },
+    { url: url("/spivpratsia"), changeFrequency: "monthly", priority: 0.5 },
+    { url: url("/kontakty"), changeFrequency: "monthly", priority: 0.5 },
+    { url: url("/dohovir-oferty"), changeFrequency: "yearly", priority: 0.3 },
+    { url: url("/polityka-konfidentsiinosti"), changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const categoryEntries: Entry[] = categories.map((category) => ({
-    url: url(`/catalog/${category.slug}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: category.parentId ? 0.6 : 0.8,
-  }));
+  const categoryEntries: Entry[] = categories.map((category) =>
+    dated({
+      url: url(`/catalog/${category.slug}`),
+      changeFrequency: "weekly",
+      priority: category.parentId ? 0.6 : 0.8,
+    }),
+  );
 
   const vehicleGroups = await Promise.all(
     makes.map(async (make): Promise<Entry[]> => {
       const models = await getModels(make.id);
-      const makeEntry: Entry = {
-        url: url(`/avto/${make.slug}`),
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: 0.6,
-      };
-      const modelEntries: Entry[] = models.map((model) => ({
-        url: url(`/avto/${make.slug}/${model.slug}`),
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: 0.5,
-      }));
-      return [makeEntry, ...modelEntries];
+      return [
+        dated({ url: url(`/avto/${make.slug}`), changeFrequency: "weekly", priority: 0.6 }),
+        ...models.map((model) => dated({ url: url(`/avto/${make.slug}/${model.slug}`), changeFrequency: "weekly", priority: 0.5 })),
+      ];
     }),
   );
-  const vehicleEntries: Entry[] = vehicleGroups.flat();
 
-  const brandEntries: Entry[] = brands.map((brand) => ({
-    url: url(`/brands/${brand.slug}`),
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.5,
-  }));
+  const brandEntries: Entry[] = brands.map((brand) =>
+    dated({ url: url(`/brands/${brand.slug}`), changeFrequency: "weekly", priority: 0.5 }),
+  );
 
   const articleEntries: Entry[] = articles.map((article) => ({
     url: url(`/blog/${article.slug}`),
@@ -99,5 +93,5 @@ async function taxonomySitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticEntries, ...categoryEntries, ...vehicleEntries, ...brandEntries, ...articleEntries];
+  return [...staticEntries, ...categoryEntries, ...vehicleGroups.flat(), ...brandEntries, ...articleEntries];
 }
