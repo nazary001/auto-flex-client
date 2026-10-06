@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
     serverActions: { bodySizeLimit: "8mb" },
   },
   images: {
+    // Vercel's image optimizer counts every distinct source image against a monthly quota; with
+    // ~90 000 supplier photos crawled by bots the Hobby quota is gone in days and every photo then
+    // fails with 402 (OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED). Serve images as they are instead:
+    // the supplier CDN already delivers web-sized JPEGs and allows hot-linking.
+    unoptimized: true,
     // Product photos are served from the supplier (DD Tuning / DD Audio) hosts
     remotePatterns: [
       { protocol: "https", hostname: "ddaudio.com.ua" },
