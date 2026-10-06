@@ -42,6 +42,8 @@ export const metadata: Metadata = {
     description: site.description,
   },
   formatDetection: { telephone: false },
+  // Google Search Console ownership (renders <meta name="google-site-verification">)
+  verification: { google: "SkfXqLya5MW5Y8X7aY6cT5jBLne-v37gard_ccI_DTs" },
 };
 
 export const viewport: Viewport = {
