@@ -10,6 +10,7 @@ import { orderStatusMeta, paymentStatusMeta } from "@/lib/admin/labels";
 import type { Order, OrderCreateInput, OrderLine } from "@/lib/admin/types";
 import { compact, nowIso } from "@/lib/server/db/util";
 import {
+  deleteOrderCascade,
   addOrderEvent,
   changeOrderStatus,
   createOrder,
@@ -469,6 +470,39 @@ export async function checkTrackingAction(input: unknown): Promise<ActionResult<
       await ctx.audit({ action: "order.tracking", entity: "order", entityId: id, summary: `${order.number}: ${result.status}` });
       revalidateOrder(id);
       return { status: result.status, delivered: result.delivered };
+    },
+  });
+}
+
+// ── deletion (owner only) ───────────────────────────────────
+
+const deleteOrderSchema = z.object({ id: idSchema });
+
+export async function deleteOrderAction(input: unknown): Promise<ActionResult<{ number: string }>> {
+  return runAction({
+    permission: "orders:delete",
+    schema: deleteOrderSchema,
+    input,
+    run: async ({ id }, ctx) => {
+      const result = await deleteOrderCascade(ctx.db, id);
+      await ctx.audit({
+        action: "order.delete",
+        entity: "order",
+        entityId: id,
+        summary: `${result.order.number}: замовлення видалено разом з історією${result.purchaseOrdersRemoved ? ` і ${result.purchaseOrdersRemoved} закупівлею` : ""}`,
+        data: {
+          number: result.order.number,
+          total: result.order.total,
+          purchaseOrdersRemoved: result.purchaseOrdersRemoved,
+          purchaseOrdersTrimmed: result.purchaseOrdersTrimmed,
+        },
+      });
+      revalidatePath("/admin");
+      revalidatePath("/admin/orders");
+      revalidatePath("/admin/purchases");
+      revalidatePath("/admin/customers");
+      if (result.order.customer.customerId) revalidatePath(`/admin/customers/${result.order.customer.customerId}`);
+      return { number: result.order.number };
     },
   });
 }

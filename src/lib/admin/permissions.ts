@@ -23,6 +23,7 @@ export type Permission =
   | "users:read"
   | "users:write"
   | "audit:read"
+  | "orders:delete"
   | "export";
 
 const READ_ALL: Permission[] = [
@@ -47,7 +48,7 @@ const MANAGER_WRITES: Permission[] = [
   "content:write",
 ];
 
-const OWNER_WRITES: Permission[] = ["settings:write", "users:write"];
+const OWNER_WRITES: Permission[] = ["settings:write", "users:write", "orders:delete"];
 
 export const rolePermissions: Record<Role, ReadonlySet<Permission>> = {
   viewer: new Set(READ_ALL),

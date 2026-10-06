@@ -5,6 +5,7 @@ import { Copy, FileText, Pencil, ShoppingCart } from "lucide-react";
 import { buttonClass } from "@/components/ui/Button";
 import { Card, DateTime, DescriptionList, PageHeader, PhoneLink, Pill, StatusBadge, Timeline, type TimelineItem } from "@/components/admin/ui";
 import { OrderAssignee } from "@/components/admin/orders/OrderAssignee";
+import { OrderDeleteButton } from "@/components/admin/orders/OrderDeleteButton";
 import { OrderStatusCard } from "@/components/admin/orders/OrderStatusCard";
 import { OrderPaymentCard } from "@/components/admin/orders/OrderPaymentCard";
 import { OrderDeliveryCard } from "@/components/admin/orders/OrderDeliveryCard";
@@ -120,6 +121,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                 Дублювати
               </Link>
             )}
+            {can(user, "orders:delete") && <OrderDeleteButton id={order.id} number={order.number} />}
           </>
         }
       />

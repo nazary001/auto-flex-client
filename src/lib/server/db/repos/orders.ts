@@ -576,3 +576,42 @@ export async function summarizePeriod(db: Db, fromIso: string, toIso?: string): 
     averageOrder: orders > 0 ? Math.round(revenue / orders) : 0,
   };
 }
+
+// ── deletion ────────────────────────────────────────────────
+
+export interface DeleteOrderResult {
+  order: Order;
+  purchaseOrdersRemoved: number;
+  purchaseOrdersTrimmed: number;
+}
+
+/**
+ * Removes an order together with everything that exists only because of it: its timeline, its
+ * lines inside purchase orders (a purchase order left without lines is removed as well) and the
+ * customer's totals. Meant for test and duplicate orders — real orders get the "cancelled" status.
+ */
+export async function deleteOrderCascade(db: Db, id: string): Promise<DeleteOrderResult> {
+  const order = await getOrder(db, id);
+  if (!order) throw new Error("Замовлення не знайдено.");
+  const c = cols(db);
+  let purchaseOrdersRemoved = 0;
+  let purchaseOrdersTrimmed = 0;
+  const purchaseOrders = await c.purchaseOrders.find({ "lines.orderId": id }).toArray();
+  for (const po of purchaseOrders) {
+    const rest = po.lines.filter((line) => line.orderId !== id);
+    if (rest.length === 0) {
+      await c.purchaseOrders.deleteOne({ _id: po._id });
+      purchaseOrdersRemoved++;
+    } else {
+      await c.purchaseOrders.updateOne(
+        { _id: po._id },
+        { $set: { lines: rest, totalCost: rest.reduce((sum, line) => sum + line.cost * line.qty, 0), updatedAt: nowIso() } },
+      );
+      purchaseOrdersTrimmed++;
+    }
+  }
+  await c.orderEvents.deleteMany({ orderId: id });
+  await c.orders.deleteOne({ _id: id });
+  if (order.customer.customerId) await recomputeStats(db, order.customer.customerId);
+  return { order, purchaseOrdersRemoved, purchaseOrdersTrimmed };
+}
