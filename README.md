@@ -94,18 +94,20 @@ Vercel сам передаёт `Authorization: Bearer <CRON_SECRET>`.
 
 ## Деплой (Vercel)
 
-Боевая версия развёрнута на Vercel (проект `autoflex`, функции в регионе Франкфурт `fra1`,
-адрес https://autoflex-nine.vercel.app) и работает с MongoDB Atlas (кластер `autoflex`, Франкфурт).
-Деплой выполняется из рабочей папки командой `npx vercel deploy --prod` (CLI уже привязан к проекту,
-настройки в `.vercel/`). Переменные production в Vercel: `MONGODB_URI` (строка `mongodb+srv://`),
-`MONGODB_DB`, `DDTUNING_API_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, а также
+Боевая версия развёрнута на Vercel: проект `auto-flex-client` (аккаунт nazary001s-projects), домен
+https://avtoflex.com (www перенаправляется на apex), технический адрес https://auto-flex-client.vercel.app,
+функции в регионе Франкфурт `fra1`; база — MongoDB Atlas (кластер `autoflex`, Франкфурт). Проект связан с
+GitHub `nazary001/auto-flex-client`: пуш в `main` автоматически собирает и публикует production. Переменные production в Vercel: `MONGODB_URI` (строка `mongodb+srv://`),
+`MONGODB_DB`, `DDTUNING_API_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, `MONGODB_STORAGE_LIMIT_MB`
+(квота кластера Atlas в МБ: 5120 для Flex; синхронизация проверяет свободное место перед записью), а также
 `MONGOMS_DISABLE_POSTINSTALL=1`, чтобы при установке зависимостей не скачивался локальный MongoDB.
 `vercel.json` задаёт фреймворк, регион и cron синхронизации каталога (раз в сутки в 03:00 UTC —
 ограничение тарифа Hobby; на Pro можно поставить ежечасно). Пароль пользователя Atlas и секрет cron
 хранятся в `.env.local` (`CRON_SECRET_PRODUCTION`).
 
-Когда появится свой домен: добавьте его в Vercel → Settings → Domains и обновите
-`NEXT_PUBLIC_SITE_URL` (нужен передеплой, адрес попадает в canonical и sitemap).
+DNS домена avtoflex.com ведётся у регистратора (Namecheap): его неймсерверы должны указывать на
+`ns1.vercel-dns.com` и `ns2.vercel-dns.com` (либо A-запись `76.76.21.21` для apex и CNAME
+`cname.vercel-dns.com` для www). `NEXT_PUBLIC_SITE_URL` уже равен https://avtoflex.com.
 
 ## Каталог и поставщик DD Tuning
 
