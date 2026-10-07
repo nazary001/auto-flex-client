@@ -807,7 +807,8 @@ async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, regi
   if (run.offset === 0) {
     const after = run.counters.buildAfterParent;
     const cursor = staging
-      .find({ runId: run._id, parentId: after === undefined ? { $ne: null } : { $gt: after } })
+      // a single range on parentId keeps the scan index-ordered (no in-memory sort); 0 / null = no group
+      .find({ runId: run._id, parentId: { $gt: after ?? 0 } })
       .sort({ parentId: 1, _id: 1 });
     let batch: StagingDoc[][] = [];
     let current: StagingDoc[] = [];
