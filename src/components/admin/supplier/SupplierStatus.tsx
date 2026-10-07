@@ -157,7 +157,8 @@ export function SupplierStatus({ initialRun, canWrite, configured }: SupplierSta
 
   const active = isActive(run);
   const busy = syncing || rebuilding;
-  const counters = run ? Object.entries(run.counters).filter(([, v]) => typeof v === "number") : [];
+  // buildAfter* keys are resume positions of the build phase, not figures to show
+  const counters = run ? Object.entries(run.counters).filter(([key, v]) => typeof v === "number" && !key.startsWith("buildAfter")) : [];
 
   return (
     <Card

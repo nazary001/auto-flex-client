@@ -337,7 +337,7 @@ export async function ensureIndexes(db: Db): Promise<void> {
     c.brands.createIndex({ name: 1 }),
     c.models.createIndex({ makeId: 1, name: 1 }),
     c.syncRuns.createIndex({ startedAt: -1 }),
-    c.staging.createIndex({ runId: 1, parentId: 1 }),
+    c.staging.createIndex({ runId: 1, parentId: 1, _id: 1 }),
     c.promos.createIndex({ sort: 1 }),
     c.faq.createIndex({ sort: 1 }),
     c.audit.createIndex({ at: -1 }),

@@ -751,13 +751,19 @@ interface BuildStats {
 
 async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, registry: TaxonomyRegistry, mayContinue: () => Promise<boolean>): Promise<BuildStats> {
   const staging = cols(db).staging;
-  const stats: BuildStats = { products: run.counters.products ?? 0, groups: run.counters.groups ?? 0, complete: false };
-  if (run.offset === 0) {
-    stats.products = 0;
-    stats.groups = 0;
-  }
+  // Progress inside the phase lives in the run counters so a paused run resumes where it stopped:
+  // offset 0 = variant groups (after parentId buildAfterParent), offset 1 = standalone items (after id buildAfterSingle)
+  const fresh = run.offset === 0 && run.counters.buildAfterParent === undefined;
+  const stats: BuildStats = {
+    products: fresh ? 0 : (run.counters.products ?? 0),
+    groups: fresh ? 0 : (run.counters.groups ?? 0),
+    complete: false,
+  };
+  const remember = () => {
+    run.counters.products = stats.products;
+    run.counters.groups = stats.groups;
+  };
 
-  // 1. variant groups (parentId != null), grouped in the database; 2. standalone items
   const flush = async (groups: StagingDoc[][]) => {
     if (groups.length === 0) return;
     const inputs = groups.map((docs) => ({
@@ -795,48 +801,75 @@ async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, regi
     stats.groups += inputs.filter((i) => i.items.length > 1 && i.parentId).length;
   };
 
-  // phase offset: 0 = groups not done yet; 1 = groups done, standalone pending (we re-run cheaply)
+  // 1. Variant groups: rows come out of the { runId, parentId, _id } index already ordered by parent,
+  //    so one group at a time is assembled in memory. (A server-side $group with $push needs the whole
+  //    price list in RAM at once, which Atlas Flex refuses — "Exceeded memory limit for $group".)
   if (run.offset === 0) {
-    const cursor = staging.aggregate<{ _id: number; docs: StagingDoc[] }>(
-      [{ $match: { runId: run._id, parentId: { $ne: null } } }, { $group: { _id: "$parentId", docs: { $push: "$$ROOT" } } }],
-      { allowDiskUse: true },
-    );
+    const after = run.counters.buildAfterParent;
+    const cursor = staging
+      .find({ runId: run._id, parentId: after === undefined ? { $ne: null } : { $gt: after } })
+      .sort({ parentId: 1, _id: 1 });
     let batch: StagingDoc[][] = [];
-    for await (const group of cursor) {
-      batch.push(group.docs);
-      if (batch.length >= BUILD_BATCH) {
-        await flush(batch);
-        batch = [];
-        if (!(await mayContinue())) {
-          await cursor.close();
-          run.counters.products = stats.products;
-          run.counters.groups = stats.groups;
-          return stats;
+    let current: StagingDoc[] = [];
+    let lastParent: number | undefined;
+    const flushBatch = async () => {
+      await flush(batch);
+      batch = [];
+      if (lastParent !== undefined) run.counters.buildAfterParent = lastParent;
+      remember();
+      await saveRun(db, run);
+    };
+    for await (const doc of cursor) {
+      if (current.length > 0 && current[0].parentId !== doc.parentId) {
+        batch.push(current);
+        lastParent = current[0].parentId as number;
+        current = [];
+        if (batch.length >= BUILD_BATCH) {
+          await flushBatch();
+          if (!(await mayContinue())) {
+            await cursor.close();
+            return stats;
+          }
         }
       }
+      current.push(doc);
     }
-    await flush(batch);
+    if (current.length > 0) {
+      batch.push(current);
+      lastParent = current[0].parentId as number;
+    }
+    await flushBatch();
     run.offset = 1;
-    run.counters.products = stats.products;
-    run.counters.groups = stats.groups;
+    delete run.counters.buildAfterParent;
+    remember();
     await saveRun(db, run);
   }
 
-  const singles = staging.find({ runId: run._id, parentId: null }).sort({ _id: 1 });
+  // 2. Standalone items in id order, resumable after the last written id
+  const afterSingle = run.counters.buildAfterSingle;
+  const singles = staging
+    .find({ runId: run._id, parentId: null, ...(afterSingle === undefined ? {} : { _id: { $gt: afterSingle } }) })
+    .sort({ _id: 1 });
   let batch: StagingDoc[][] = [];
+  let lastId: number | undefined;
   for await (const doc of singles) {
     batch.push([doc]);
+    lastId = doc._id;
     if (batch.length >= BUILD_BATCH) {
       await flush(batch);
       batch = [];
+      run.counters.buildAfterSingle = lastId;
+      remember();
+      await saveRun(db, run);
       if (!(await mayContinue())) {
         await singles.close();
-        run.counters.products = stats.products;
         return stats;
       }
     }
   }
   await flush(batch);
+  delete run.counters.buildAfterSingle;
+  remember();
   stats.complete = true;
   return stats;
 }
