@@ -95,7 +95,7 @@ Vercel сам передаёт `Authorization: Bearer <CRON_SECRET>`.
 ## Деплой (Vercel)
 
 Боевая версия развёрнута на Vercel: проект `auto-flex-client` (аккаунт nazary001s-projects), домен
-https://avtoflex.com (www перенаправляется на apex), технический адрес https://auto-flex-client.vercel.app,
+https://tuningworld.com.ua (www перенаправляется на apex; прежний домен https://avtoflex.com остаётся привязанным к проекту как 301-редирект на новый), технический адрес https://auto-flex-client.vercel.app,
 функции в регионе Франкфурт `fra1`; база — MongoDB Atlas (кластер `autoflex`, Франкфурт). Проект связан с
 GitHub `nazary001/auto-flex-client`: пуш в `main` автоматически собирает и публикует production. Переменные production в Vercel: `MONGODB_URI` (строка `mongodb+srv://`),
 `MONGODB_DB`, `DDTUNING_API_TOKEN`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL`, `MONGODB_STORAGE_LIMIT_MB`
@@ -105,9 +105,14 @@ GitHub `nazary001/auto-flex-client`: пуш в `main` автоматически
 ограничение тарифа Hobby; на Pro можно поставить ежечасно). Пароль пользователя Atlas и секрет cron
 хранятся в `.env.local` (`CRON_SECRET_PRODUCTION`).
 
-DNS домена avtoflex.com ведётся у регистратора (Namecheap): его неймсерверы должны указывать на
-`ns1.vercel-dns.com` и `ns2.vercel-dns.com` (либо A-запись `76.76.21.21` для apex и CNAME
-`cname.vercel-dns.com` для www). `NEXT_PUBLIC_SITE_URL` уже равен https://avtoflex.com.
+DNS домена tuningworld.com.ua ведётся у регистратора — «Хостинг Україна» (ukraine.com.ua, панель adm.tools; неймсерверы
+`c.ns.services`, `d.ns.gold`, `e.ns.gold`). Неймсерверы менять не нужно — иначе пропадут почтовые записи (MX `mx.services`,
+SPF). В зоне надо удалить парковочные записи хостинга (A `@` → `91.206.200.72`, A `www`/`*` → `91.206.200.72`) и добавить
+A `@` → `216.150.1.1` и `216.150.16.1` (значения из Vercel → Settings → Domains) и CNAME `www` →
+`c63cf286f8aaaa98.vercel-dns-017.com.` (запасной вариант — `cname.vercel-dns.com.`); AAAA не добавлять. www отдаёт 308
+на apex, SSL-сертификат Vercel выпускает сам, когда записи разойдутся. Домен avtoflex.com остаётся на Vercel DNS и привязан
+к проекту как 301-редирект на tuningworld.com.ua (включается только после того, как новый домен указывает на Vercel и
+получил сертификат). `NEXT_PUBLIC_SITE_URL` равен https://tuningworld.com.ua.
 
 ## Каталог и поставщик DD Tuning
 
@@ -143,7 +148,7 @@ DNS домена avtoflex.com ведётся у регистратора (Namech
 пока фото нет, показывается иллюстрация категории.
 
 SEO: `app/sitemap.ts` режет каталог на файлы по 20 000 адресов (`/sitemap/<id>.xml`),
-индекс — `/sitemap-index.xml` (на него указывает `robots.txt`), страницы товаров
+индекс — `/sitemap.xml` (на него указывает `robots.txt`; это rewrite на `/sitemap-index.xml`), страницы товаров
 перегенерируются раз в 10 минут (ISR).
 
 ## Как устроен проект
