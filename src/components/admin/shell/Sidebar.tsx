@@ -28,7 +28,7 @@ export function Sidebar({ user, counts, showBrand = true, onNavigate }: SidebarP
             aria-label="AutoFlex — адмінка"
             className="flex items-center gap-2 rounded-btn"
           >
-            <Logo variant="dark" title={false} className="h-6 w-auto" />
+            <Logo variant="dark" title={false} className="h-5 w-auto" />
             <span className="text-[13px] font-semibold text-white/55">Адмінка</span>
           </Link>
         </div>

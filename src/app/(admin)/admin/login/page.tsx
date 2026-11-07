@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     return (
       <div className="flex min-h-dvh items-center justify-center p-4">
         <div className="w-full max-w-md rounded-card border border-line-soft bg-white p-6 text-center shadow-card">
-          <Logo className="mx-auto h-8 w-auto" />
+          <Logo className="mx-auto h-7 w-auto" />
           <h1 className="mt-5 text-lg font-semibold text-ink">База даних недоступна</h1>
           <p className="mt-1.5 text-sm text-ink-3">
             Не вдалося підключитися до бази даних. Перевірте змінну середовища MONGODB_URI і оновіть сторінку.

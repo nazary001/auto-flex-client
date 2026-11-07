@@ -16,7 +16,7 @@ export function LoginScreen({ mode, next }: LoginScreenProps) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       <aside className="bg-stripes-navy relative hidden flex-col justify-between p-10 text-white lg:flex">
-        <Logo variant="dark" className="h-8 w-auto" />
+        <Logo variant="dark" className="h-7 w-auto" />
         <div>
           <p className="display text-[3.25rem] leading-none text-white">Адмінка</p>
           <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/70">
@@ -29,7 +29,7 @@ export function LoginScreen({ mode, next }: LoginScreenProps) {
       <main className="flex items-center justify-center p-6 sm:p-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
-            <Logo className="h-8 w-auto" />
+            <Logo className="h-7 w-auto" />
           </div>
           {mode === "login" ? <LoginForm next={next} /> : <SetupForm />}
         </div>

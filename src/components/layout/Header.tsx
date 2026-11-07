@@ -107,7 +107,7 @@ export async function Header() {
         <div className="container-page hidden lg:block">
           <div className="relative flex h-[76px] items-center gap-4 xl:gap-6">
             <Link href="/" aria-label="AutoFlex — на головну" className="shrink-0">
-              <Logo className="h-8 w-auto" />
+              <Logo className="h-7 w-auto" />
             </Link>
 
             <CatalogMenu data={nav} />
@@ -142,7 +142,7 @@ export async function Header() {
           <div className="flex h-14 items-center gap-2">
             <MobileNav data={nav} />
             <Link href="/" aria-label="AutoFlex — на головну" className="mr-auto shrink-0">
-              <Logo className="h-7 w-auto" />
+              <Logo className="h-6 w-auto" />
             </Link>
             <PhoneLink
               href={site.phone.href}

@@ -39,7 +39,7 @@ export function Footer() {
       <div className="container-page grid gap-10 py-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-8 lg:py-12">
         {/* Brand column */}
         <div className="sm:col-span-2 lg:col-span-1">
-          <Logo variant="dark" className="h-8 w-auto" />
+          <Logo variant="dark" className="h-7 w-auto" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">
             {site.tagline}. Доставка по всій Україні, перевірка сумісності за VIN перед відправкою зі складів
             постачальників.
