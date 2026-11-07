@@ -6,7 +6,7 @@ import { getCurrentAccount, safeAccountNext } from "@/lib/server/account/dal";
 
 export const metadata: Metadata = {
   title: "Вхід до кабінету",
-  description: "Увійдіть до особистого кабінету AutoFlex за номером телефону або електронною поштою.",
+  description: "Увійдіть до особистого кабінету TuningWorld за номером телефону або електронною поштою.",
   alternates: { canonical: "/account/login" },
   robots: { index: false, follow: false },
 };

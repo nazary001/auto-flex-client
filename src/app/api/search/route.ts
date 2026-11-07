@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     };
     return Response.json(payload);
   } catch (error) {
-    console.error("[AutoFlex] /api/search", error);
+    console.error("[TuningWorld] /api/search", error);
     const empty: SearchResponse = { products: [], categories: [], brands: [], total: 0 };
     return Response.json(empty, { status: 503 });
   }

@@ -20,10 +20,10 @@ export function LoginScreen({ mode, next }: LoginScreenProps) {
         <div>
           <p className="display text-[3.25rem] leading-none text-white">Адмінка</p>
           <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/70">
-            Внутрішній кабінет AutoFlex: замовлення, закупівлі, клієнти та каталог — в одному місці.
+            Внутрішній кабінет TuningWorld: замовлення, закупівлі, клієнти та каталог — в одному місці.
           </p>
         </div>
-        <p className="text-[13px] text-white/40">AutoFlex — автозапчастини</p>
+        <p className="text-[13px] text-white/40">TuningWorld — автозапчастини</p>
       </aside>
 
       <main className="flex items-center justify-center p-6 sm:p-10">

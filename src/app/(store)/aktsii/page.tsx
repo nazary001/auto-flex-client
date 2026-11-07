@@ -14,7 +14,7 @@ import { getPromos } from "@/lib/content";
 export const metadata: Metadata = {
   title: "Акції",
   description:
-    "Актуальні знижки AutoFlex на гальма, підвіску, двигун і автохімію. Чесні ціни, підбір за VIN і доставка по Україні.",
+    "Актуальні знижки TuningWorld на гальма, підвіску, двигун і автохімію. Чесні ціни, підбір за VIN і доставка по Україні.",
   alternates: { canonical: "/aktsii" },
 };
 

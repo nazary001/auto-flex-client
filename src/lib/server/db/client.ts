@@ -95,7 +95,7 @@ async function startLocalMongo(): Promise<string> {
   // already runs the instance, share it instead of failing on the lock.
   const shared = await existingLocalMongo(infoFile);
   if (shared) {
-    console.info(`[AutoFlex] Використовую вже запущений локальний MongoDB (${shared})`);
+    console.info(`[TuningWorld] Використовую вже запущений локальний MongoDB (${shared})`);
     return shared;
   }
   // turbopackIgnore: the package is external (next.config.ts) and must not be traced into the build output
@@ -109,7 +109,7 @@ async function startLocalMongo(): Promise<string> {
     const uri = server.getUri();
     const info: LocalMongoInfo = { uri, pid: process.pid, startedAt: new Date().toISOString() };
     fs.writeFileSync(infoFile, JSON.stringify(info));
-    console.info(`[AutoFlex] MONGODB_URI не задано — запущено локальний MongoDB (${uri}), дані в ${dbPath}`);
+    console.info(`[TuningWorld] MONGODB_URI не задано — запущено локальний MongoDB (${uri}), дані в ${dbPath}`);
     return uri;
   } catch (error) {
     // lost the race against a sibling that is starting the instance right now — wait for it to publish the URI

@@ -49,7 +49,7 @@ export function HowItWorks() {
           <div className="relative mx-auto aspect-[322/290] w-full max-w-[322px] overflow-hidden rounded-card ring-1 ring-white/15 lg:mx-0">
             <Image
               src={photoMechanic}
-              alt="Фахівець AutoFlex перевіряє товар перед відправленням"
+              alt="Фахівець TuningWorld перевіряє товар перед відправленням"
               fill
               placeholder="blur"
               sizes="322px"

@@ -31,7 +31,7 @@ export async function seedDemoOrdersIfPending(db: Db): Promise<boolean> {
   if ((await cols(db).products.countDocuments({ hidden: false })) === 0) return false;
   await seedDemoData(db);
   await cols(db).meta.updateOne({ _id: "seededAt" }, { $set: { value: new Date().toISOString() } }, { upsert: true });
-  console.info("[AutoFlex] Демо-дані для адмінки створено (замовлення, постачальники, клієнти, заявки)");
+  console.info("[TuningWorld] Демо-дані для адмінки створено (замовлення, постачальники, клієнти, заявки)");
   return true;
 }
 
@@ -41,14 +41,14 @@ async function run(db: Db): Promise<void> {
   try {
     await ensureIndexes(db);
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося створити індекси — продовжую без них (читання працює, записи можуть падати)", error);
+    console.error("[TuningWorld] Не вдалося створити індекси — продовжую без них (читання працює, записи можуть падати)", error);
   }
 
   const email = process.env.ADMIN_EMAIL?.trim();
   const password = process.env.ADMIN_PASSWORD;
   if (email && password && (await countUsers(db)) === 0) {
     await createUser(db, { email, name: "Власник", role: "owner", password });
-    console.info(`[AutoFlex] Створено обліковий запис власника ${email} з ADMIN_EMAIL / ADMIN_PASSWORD`);
+    console.info(`[TuningWorld] Створено обліковий запис власника ${email} з ADMIN_EMAIL / ADMIN_PASSWORD`);
   }
 
   await seedContentIfEmpty(db);
@@ -56,7 +56,7 @@ async function run(db: Db): Promise<void> {
   const productCount = await cols(db).products.estimatedDocumentCount();
   if (productCount === 0 && !isDdConfigured()) {
     const result = await importDemoCatalog(db);
-    console.info(`[AutoFlex] Токен постачальника не задано — завантажено демо-каталог (${result.products} товарів)`);
+    console.info(`[TuningWorld] Токен постачальника не задано — завантажено демо-каталог (${result.products} товарів)`);
   }
 
   await seedDemoOrdersIfPending(db);

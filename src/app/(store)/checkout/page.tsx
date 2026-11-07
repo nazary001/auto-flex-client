@@ -9,7 +9,7 @@ import type { DeliveryMethod, PaymentMethod } from "@/lib/types";
 export const metadata: Metadata = {
   title: "Оформлення замовлення",
   description:
-    "Оформлення замовлення в AutoFlex: контактні дані, доставка Новою Поштою або Укрпоштою, оплата та перевірка сумісності за VIN.",
+    "Оформлення замовлення в TuningWorld: контактні дані, доставка Новою Поштою або Укрпоштою, оплата та перевірка сумісності за VIN.",
   alternates: { canonical: "/checkout" },
   robots: { index: false, follow: false },
 };

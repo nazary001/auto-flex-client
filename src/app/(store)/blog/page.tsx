@@ -51,7 +51,7 @@ export default async function BlogPage({
       <Breadcrumbs items={[{ label: "Блог" }]} />
 
       <header className="mt-5 max-w-3xl">
-        <h1 className="page-title">Блог AutoFlex</h1>
+        <h1 className="page-title">Блог TuningWorld</h1>
         <p className="lead mt-3">
           Поради, як обрати запчастини, вчасно їх обслужити та підготувати авто до сезону. Пишемо просто й по суті —
           щоб ви купували саме те, що потрібно вашій машині.

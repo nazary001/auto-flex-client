@@ -25,7 +25,7 @@ export async function generateMetadata({ searchParams }: CatalogPageProps): Prom
     return {
       title: listingTitle(sp),
       description:
-        "Товари всіх груп каталогу AutoFlex з фільтрами за виробником, ціною та наявністю. Доставка по Україні, перевірка сумісності за VIN.",
+        "Товари всіх груп каталогу TuningWorld з фільтрами за виробником, ціною та наявністю. Доставка по Україні, перевірка сумісності за VIN.",
       alternates: { canonical: "/catalog" },
       robots: { index: false, follow: true },
     };
@@ -33,7 +33,7 @@ export async function generateMetadata({ searchParams }: CatalogPageProps): Prom
   return {
     title: "Каталог автозапчастин",
     description:
-      "Каталог автозапчастин AutoFlex: гальма, двигун, підвіска, фільтри, оливи та аксесуари. Підбір за маркою авто й за VIN, доставка по Україні за 1–3 дні.",
+      "Каталог автозапчастин TuningWorld: гальма, двигун, підвіска, фільтри, оливи та аксесуари. Підбір за маркою авто й за VIN, доставка по Україні за 1–3 дні.",
     alternates: { canonical: "/catalog" },
   };
 }

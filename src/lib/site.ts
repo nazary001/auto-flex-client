@@ -3,10 +3,10 @@
  * replace them with the real ones before launch.
  */
 export const site = {
-  name: "AutoFlex",
+  name: "TuningWorld",
   tagline: "Автоаксесуари та тюнінг для вашого авто",
   description:
-    "Інтернет-магазин автоаксесуарів і тюнінгу AutoFlex: дефлектори, килимки, хром-накладки та багажники на дах, підібрані під конкретну модель авто. Доставка по Україні за 1–3 дні.",
+    "Інтернет-магазин автоаксесуарів і тюнінгу TuningWorld: дефлектори, килимки, хром-накладки та багажники на дах, підібрані під конкретну модель авто. Доставка по Україні за 1–3 дні.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://tuningworld.com.ua",
   domainLabel: "tuningworld.com.ua",
   phone: { label: "+38 (097) 123-45-67", href: "tel:+380971234567" },
@@ -79,7 +79,7 @@ export const footerNav: { title: string; links: NavLink[] }[] = [
   {
     title: "Компанія",
     links: [
-      { label: "Про AutoFlex", href: "/pro-nas" },
+      { label: "Про TuningWorld", href: "/pro-nas" },
       { label: "Співпраця: СТО та опт", href: "/spivpratsia" },
       { label: "Блог", href: "/blog" },
       { label: "Контакти", href: "/kontakty" },

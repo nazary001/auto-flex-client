@@ -100,14 +100,14 @@ export async function POST(request: Request) {
   try {
     db = await getDb();
   } catch (error) {
-    console.error("[AutoFlex] База даних недоступна під час оформлення замовлення", error);
+    console.error("[TuningWorld] База даних недоступна під час оформлення замовлення", error);
     return fail("Магазин тимчасово недоступний. Спробуйте за хвилину або зателефонуйте нам.", 503);
   }
   let settings = DEFAULT_SETTINGS;
   try {
     settings = await getSettings(db);
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося прочитати налаштування", error);
+    console.error("[TuningWorld] Не вдалося прочитати налаштування", error);
   }
   if (!settings.checkout.delivery[method]?.enabled) return fail("Цей спосіб доставки наразі недоступний. Оберіть інший.");
   if (!settings.checkout.payment[payment]?.enabled) return fail("Цей спосіб оплати наразі недоступний. Оберіть інший.");
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
     orderId = order.id;
     total = order.total;
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося зберегти замовлення в базі", error);
+    console.error("[TuningWorld] Не вдалося зберегти замовлення в базі", error);
     orderNumber = `AF-${dateStamp()}-${randomInt(1000, 10000)}`;
   }
 
@@ -196,7 +196,7 @@ export async function POST(request: Request) {
         data: { total },
       });
     } catch (error) {
-      console.error("[AutoFlex] Не вдалося записати подію замовлення в журнал", error);
+      console.error("[TuningWorld] Не вдалося записати подію замовлення в журнал", error);
     }
   }
 
@@ -251,7 +251,7 @@ export async function POST(request: Request) {
         await addOrderEvent(db, orderId, "notified", STOREFRONT_ACTOR, "Сповіщення менеджерам надіслано");
       }
     } catch (error) {
-      console.error("[AutoFlex] Не вдалося надіслати замовлення менеджеру", error);
+      console.error("[TuningWorld] Не вдалося надіслати замовлення менеджеру", error);
       if (!orderId) {
         return fail("Не вдалося оформити замовлення. Спробуйте ще раз або зателефонуйте нам.", 502);
       }

@@ -4,8 +4,8 @@ import "./admin.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Адмінка — AutoFlex",
-    template: "%s — Адмінка AutoFlex",
+    default: "Адмінка — TuningWorld",
+    template: "%s — Адмінка TuningWorld",
   },
   robots: { index: false, follow: false },
 };

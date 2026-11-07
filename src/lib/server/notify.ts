@@ -66,14 +66,14 @@ export async function notifyManagers(text: string, data: Record<string, unknown>
 
   if (deliveries.length === 0) {
     if (process.env.NODE_ENV !== "production") {
-      console.info(`[AutoFlex] Канал сповіщень не налаштовано — повідомлення для менеджера:\n${text}\n`);
+      console.info(`[TuningWorld] Канал сповіщень не налаштовано — повідомлення для менеджера:\n${text}\n`);
     }
     return false;
   }
 
   const results = await Promise.allSettled(deliveries);
   const failures = results.filter((r) => r.status === "rejected");
-  failures.forEach((failure) => console.error("[AutoFlex] Канал сповіщень не спрацював:", failure.reason));
+  failures.forEach((failure) => console.error("[TuningWorld] Канал сповіщень не спрацював:", failure.reason));
   if (failures.length === results.length) throw new Error("Every notification channel failed");
   return true;
 }

@@ -5,7 +5,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 export const metadata: Metadata = {
   title: "Кошик",
   description:
-    "Ваш кошик в AutoFlex: перевірте обрані автозапчастини, кількість і суму, після чого переходьте до оформлення замовлення.",
+    "Ваш кошик в TuningWorld: перевірте обрані автозапчастини, кількість і суму, після чого переходьте до оформлення замовлення.",
   alternates: { canonical: "/cart" },
   robots: { index: false, follow: false },
 };

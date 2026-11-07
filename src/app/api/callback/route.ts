@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     }
     stored = true;
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося зберегти заявку в базі", error);
+    console.error("[TuningWorld] Не вдалося зберегти заявку в базі", error);
   }
 
   // 2. Notify
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
         comment: comment || undefined,
       });
     } catch (error) {
-      console.error("[AutoFlex] Не вдалося надіслати заявку менеджеру", error);
+      console.error("[TuningWorld] Не вдалося надіслати заявку менеджеру", error);
       if (!stored) return fail("Не вдалося надіслати заявку. Спробуйте ще раз або зателефонуйте нам.", 502);
     }
   }

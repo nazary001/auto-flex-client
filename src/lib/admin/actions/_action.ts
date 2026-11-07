@@ -89,7 +89,7 @@ export async function runAction<I, O>({ permission, schema, input, run }: RunAct
     if (error instanceof AuthError) return fail(error.message);
     if (error instanceof ActionError) return fail(error.message, error.fieldErrors);
     if (error instanceof Error && error.name === "TransitionError") return fail(error.message);
-    console.error("[AutoFlex] Помилка дії адмінки", error);
+    console.error("[TuningWorld] Помилка дії адмінки", error);
     return fail("Не вдалося виконати дію. Спробуйте ще раз.");
   }
 }

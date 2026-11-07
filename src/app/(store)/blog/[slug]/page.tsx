@@ -90,7 +90,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     headline: article.title,
     description: article.excerpt,
     datePublished: article.date,
-    author: { "@type": "Organization", name: "Команда AutoFlex" },
+    author: { "@type": "Organization", name: "Команда TuningWorld" },
     publisher: { "@type": "Organization", name: site.name },
     image: new URL(`/illustrations/${article.illustration}.svg`, site.url).toString(),
     mainEntityOfPage: new URL(`/blog/${article.slug}`, site.url).toString(),
@@ -117,7 +117,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Users aria-hidden className="size-4" />
-            Команда AutoFlex
+            Команда TuningWorld
           </span>
         </div>
       </header>

@@ -17,7 +17,7 @@ import { refreshStaleTracking } from "@/lib/server/orders/tracking";
 
 export const metadata: Metadata = {
   title: "Кабінет",
-  description: "Особистий кабінет AutoFlex: ваші замовлення, контактні дані для оформлення та обране авто.",
+  description: "Особистий кабінет TuningWorld: ваші замовлення, контактні дані для оформлення та обране авто.",
   alternates: { canonical: "/account" },
   robots: { index: false, follow: false },
 };

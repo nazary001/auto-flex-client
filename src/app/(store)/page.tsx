@@ -33,9 +33,9 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   // The root page shares its route segment with the root layout, so the layout's
   // title.template does not apply here — set a complete, brand-inclusive title.
-  title: { absolute: "AutoFlex — автозапчастини для вашого авто онлайн" },
+  title: { absolute: "TuningWorld — автозапчастини для вашого авто онлайн" },
   description:
-    "Інтернет-магазин автозапчастин AutoFlex: підбір за маркою, моделлю та VIN, перевірка сумісності й доставка по Україні за 1–3 дні.",
+    "Інтернет-магазин автозапчастин TuningWorld: підбір за маркою, моделлю та VIN, перевірка сумісності й доставка по Україні за 1–3 дні.",
   alternates: { canonical: "/" },
 };
 

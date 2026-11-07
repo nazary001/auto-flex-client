@@ -14,7 +14,7 @@ function warnOnce(error: unknown): void {
   if (warned) return;
   warned = true;
   const reason = error instanceof Error ? error.message : String(error);
-  console.warn(`[AutoFlex] База даних недоступна — використовуються статичні акції та FAQ (${reason})`);
+  console.warn(`[TuningWorld] База даних недоступна — використовуються статичні акції та FAQ (${reason})`);
 }
 
 /** Active promotions in display order */

@@ -23,7 +23,7 @@ const COUNT_FORMS: [string, string, string] = ["товар", "товари", "т
 
 export const metadata: Metadata = {
   title: "Результати пошуку",
-  description: "Пошук автозапчастин за назвою, артикулом або оригінальним номером у каталозі AutoFlex.",
+  description: "Пошук автозапчастин за назвою, артикулом або оригінальним номером у каталозі TuningWorld.",
   alternates: { canonical: "/search" },
   robots: { index: false, follow: true },
 };

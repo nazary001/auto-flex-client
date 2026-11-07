@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Замовлення прийнято",
-  description: "Дякуємо за замовлення в AutoFlex. Менеджер перевірить наявність і сумісність та зв'яжеться для підтвердження.",
+  description: "Дякуємо за замовлення в TuningWorld. Менеджер перевірить наявність і сумісність та зв'яжеться для підтвердження.",
   alternates: { canonical: "/checkout/success" },
   robots: { index: false, follow: false },
 };

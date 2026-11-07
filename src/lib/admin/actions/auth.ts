@@ -149,7 +149,7 @@ export async function logoutAction(): Promise<void> {
         });
       }
     } catch (error) {
-      console.error("[AutoFlex] Не вдалося завершити сесію", error);
+      console.error("[TuningWorld] Не вдалося завершити сесію", error);
     }
   }
   await clearSessionCookie();

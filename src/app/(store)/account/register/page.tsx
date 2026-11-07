@@ -6,7 +6,7 @@ import { getCurrentAccount, safeAccountNext } from "@/lib/server/account/dal";
 
 export const metadata: Metadata = {
   title: "Реєстрація",
-  description: "Створіть акаунт AutoFlex: номер телефону, електронна пошта та пароль.",
+  description: "Створіть акаунт TuningWorld: номер телефону, електронна пошта та пароль.",
   alternates: { canonical: "/account/register" },
   robots: { index: false, follow: false },
 };

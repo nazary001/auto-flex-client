@@ -195,7 +195,7 @@ export async function sendTestNotificationAction(input: unknown): Promise<Action
       let delivered: boolean;
       try {
         delivered = await notifyManagers(
-          "AutoFlex · тестове повідомлення.\nЯкщо ви це бачите, канал сповіщень налаштовано правильно.",
+          "TuningWorld · тестове повідомлення.\nЯкщо ви це бачите, канал сповіщень налаштовано правильно.",
           { test: true, at: new Date().toISOString() },
         );
       } catch {

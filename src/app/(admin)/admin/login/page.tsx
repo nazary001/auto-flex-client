@@ -16,7 +16,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   try {
     hasUsers = (await countUsers(await getDb())) > 0;
   } catch (error) {
-    console.error("[AutoFlex] База даних недоступна на /admin/login", error);
+    console.error("[TuningWorld] База даних недоступна на /admin/login", error);
     return (
       <div className="flex min-h-dvh items-center justify-center p-4">
         <div className="w-full max-w-md rounded-card border border-line-soft bg-white p-6 text-center shadow-card">

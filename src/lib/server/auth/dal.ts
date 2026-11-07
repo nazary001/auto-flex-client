@@ -29,7 +29,7 @@ export const getCurrentUser = cache(async (): Promise<AdminUser | null> => {
     const db = await getDb();
     return await getSessionUser(db, token);
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося перевірити сесію адміністратора", error);
+    console.error("[TuningWorld] Не вдалося перевірити сесію адміністратора", error);
     return null;
   }
 });

@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   try {
     tracking = await refreshAwaitingDeliveries(db, { limit: 60 });
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося оновити статуси посилок", error);
+    console.error("[TuningWorld] Не вдалося оновити статуси посилок", error);
     tracking = { error: error instanceof Error ? error.message : String(error) };
   }
   if (!isDdConfigured()) return Response.json({ ok: false, error: "DDTUNING_API_TOKEN is not set", tracking }, { status: 400 });

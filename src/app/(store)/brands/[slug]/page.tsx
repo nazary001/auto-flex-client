@@ -31,7 +31,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   return {
     title: `Запчастини ${brand.name}`,
     description: clampDescription(
-      `Запчастини ${brand.name} (${brand.country}) в AutoFlex: ${brand.description}`,
+      `Запчастини ${brand.name} (${brand.country}) в TuningWorld: ${brand.description}`,
     ),
     alternates: { canonical: `/brands/${brand.slug}` },
     ...(hasListingParams(sp) ? { robots: { index: false, follow: true } } : {}),
@@ -87,7 +87,7 @@ export default async function BrandPage({ params, searchParams }: Props) {
           <div className="prose-af">
             <h2>Про запчастини {brand.name}</h2>
             <p>
-              {brand.description} У каталозі AutoFlex — {countUk(count, PRODUCT_FORMS)} цього виробника. Оберіть
+              {brand.description} У каталозі TuningWorld — {countUk(count, PRODUCT_FORMS)} цього виробника. Оберіть
               категорію у фільтрах праворуч або скористайтеся{" "}
               <Link href="/avto">підбором за маркою авто</Link>, щоб бачити лише сумісні з вашим автомобілем
               позиції.

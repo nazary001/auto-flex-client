@@ -27,7 +27,7 @@ export const getCurrentAccount = cache(async (): Promise<AccountContext | null> 
     const customer = await getCustomer(db, doc.customerId);
     return customer ? { account: toAccount(doc), customer } : null;
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося перевірити сесію покупця", error);
+    console.error("[TuningWorld] Не вдалося перевірити сесію покупця", error);
     return null;
   }
 });

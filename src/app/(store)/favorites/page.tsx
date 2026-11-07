@@ -4,7 +4,7 @@ import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Обране",
-  description: "Збережені автозапчастини в AutoFlex: ваш список обраного, щоб швидко повернутися до потрібних товарів.",
+  description: "Збережені автозапчастини в TuningWorld: ваш список обраного, щоб швидко повернутися до потрібних товарів.",
   alternates: { canonical: "/favorites" },
   robots: { index: false, follow: false },
 };

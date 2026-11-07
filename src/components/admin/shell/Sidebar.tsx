@@ -25,7 +25,7 @@ export function Sidebar({ user, counts, showBrand = true, onNavigate }: SidebarP
           <Link
             href="/admin"
             onClick={onNavigate}
-            aria-label="AutoFlex — адмінка"
+            aria-label="TuningWorld — адмінка"
             className="flex items-center gap-2 rounded-btn"
           >
             <Logo variant="dark" title={false} className="h-5 w-auto" />

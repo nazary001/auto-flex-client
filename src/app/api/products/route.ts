@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const products = await getProductsByIds(ids);
     return Response.json({ products: toCardList(products) });
   } catch (error) {
-    console.error("[AutoFlex] /api/products", error);
+    console.error("[TuningWorld] /api/products", error);
     return Response.json({ products: [] }, { status: 503 });
   }
 }

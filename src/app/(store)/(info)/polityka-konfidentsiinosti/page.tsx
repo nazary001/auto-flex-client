@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Політика конфіденційності",
   description:
-    "Як AutoFlex збирає, використовує та захищає персональні дані: які дані ми обробляємо, навіщо, кому передаємо, скільки зберігаємо та які права має користувач.",
+    "Як TuningWorld збирає, використовує та захищає персональні дані: які дані ми обробляємо, навіщо, кому передаємо, скільки зберігаємо та які права має користувач.",
   alternates: { canonical: "/polityka-konfidentsiinosti" },
 };
 
@@ -27,7 +27,7 @@ export default function PolitykaPage() {
     <article className="space-y-10 lg:space-y-12">
       <InfoHeader
         title="Політика конфіденційності"
-        lead="Пояснюємо, які дані збирає AutoFlex, навіщо вони потрібні, кому можуть передаватися та як ви можете ними керувати."
+        lead="Пояснюємо, які дані збирає TuningWorld, навіщо вони потрібні, кому можуть передаватися та як ви можете ними керувати."
         updated="2026-10-01"
       />
 
@@ -36,7 +36,7 @@ export default function PolitykaPage() {
       <InfoSection id="zahalni" title="Загальні положення">
         <Prose>
           <p>
-            Ця Політика конфіденційності пояснює, як {site.legal.entity} (магазин AutoFlex, далі — «ми») збирає,
+            Ця Політика конфіденційності пояснює, як {site.legal.entity} (магазин TuningWorld, далі — «ми») збирає,
             використовує та захищає персональні дані користувачів сайту {site.domainLabel}.
           </p>
           <p>

@@ -224,7 +224,7 @@ export async function logoutAction(): Promise<void> {
     try {
       await deleteAccountSession(await getDb(), token);
     } catch (error) {
-      console.error("[AutoFlex] Не вдалося видалити сесію покупця", error);
+      console.error("[TuningWorld] Не вдалося видалити сесію покупця", error);
     }
   }
   await clearAccountCookies();

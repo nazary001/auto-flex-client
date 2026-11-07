@@ -122,7 +122,7 @@ export async function refreshOrderTracking(db: Db, order: Order, options: Refres
   try {
     return { order: await applyTrackingResult(db, order, result, options.actor), refreshed: true };
   } catch (error) {
-    console.error("[AutoFlex] Не вдалося зберегти статус посилки", error);
+    console.error("[TuningWorld] Не вдалося зберегти статус посилки", error);
     return { order, refreshed: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
