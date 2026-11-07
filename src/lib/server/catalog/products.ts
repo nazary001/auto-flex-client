@@ -27,12 +27,16 @@ export async function getProductDocs(db: Db, ids: string[]): Promise<ProductDoc[
 export async function existingProductMeta(
   db: Db,
   ids: string[],
-): Promise<Map<string, Pick<ProductDoc, "createdAt" | "local" | "hidden" | "retired" | "slug" | "rating" | "reviewsCount" | "popularity">>> {
+): Promise<
+  Map<string, Pick<ProductDoc, "createdAt" | "local" | "hidden" | "retired" | "slug" | "rating" | "reviewsCount" | "popularity" | "updatedAt" | "contentHash">>
+> {
   if (ids.length === 0) return new Map();
   const docs = await cols(db)
     .products.find(
       { _id: { $in: ids } },
-      { projection: { createdAt: 1, local: 1, hidden: 1, retired: 1, slug: 1, rating: 1, reviewsCount: 1, popularity: 1 } },
+      {
+        projection: { createdAt: 1, local: 1, hidden: 1, retired: 1, slug: 1, rating: 1, reviewsCount: 1, popularity: 1, updatedAt: 1, contentHash: 1 },
+      },
     )
     .toArray();
   return new Map(docs.map((d) => [d._id, d]));
@@ -59,6 +63,7 @@ export async function saveProduct(db: Db, product: Product, meta: { source?: Pro
     supplier: existing?.supplier,
     local: existing?.local,
     skus: existing?.skus ?? [product.sku],
+    previous: existing ?? undefined,
   });
   if (existing?.createdAt) doc.createdAt = existing.createdAt;
   await writeProductDocs(db, [doc]);
@@ -87,6 +92,7 @@ export async function setProductLocal(
     supplier: doc.supplier,
     local: local && Object.keys(local).length ? local : undefined,
     skus: doc.skus,
+    previous: doc,
   });
   next.createdAt = doc.createdAt;
   next.rating = doc.rating;

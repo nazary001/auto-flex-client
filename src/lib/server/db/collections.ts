@@ -151,7 +151,10 @@ export type ProductDoc = Doc<Product> & {
     costOriginal?: number;
   };
   local?: ProductLocal;
+  /** Last time the shown content (or visibility) changed — the sitemap's <lastmod>, not the last sync */
   updatedAt: string;
+  /** productContentHash() of the stored product: lets a rewrite keep `updatedAt` when nothing changed */
+  contentHash?: string;
 };
 
 export type CategoryDoc = Doc<Category> & {

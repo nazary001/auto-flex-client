@@ -28,14 +28,16 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const make = await getMake(makeSlug);
   if (!make) return { title: "Марку не знайдено" };
 
-  const sp = await searchParams;
+  const [sp, productCount] = await Promise.all([searchParams, getMakeProductCount(make.id)]);
+  // an empty listing (no visible products for the make) must not be indexed — it is left out of the sitemap too
+  const noindex = hasListingParams(sp) || productCount === 0;
   return {
     title: `Запчастини для ${make.name}`,
     description: clampDescription(
       `Запчастини для ${make.name} (${make.country}): оригінал і аналоги за моделлю та поколінням. Перевірка сумісності за VIN, доставка по Україні за 1–3 дні.`,
     ),
     alternates: { canonical: `/avto/${make.slug}` },
-    ...(hasListingParams(sp) ? { robots: { index: false, follow: true } } : {}),
+    ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

@@ -48,7 +48,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const [make, model] = await Promise.all([getMake(makeSlug), getModel(makeSlug, modelSlug)]);
   if (!make || !model) return { title: "Авто не знайдено" };
 
-  const sp = await searchParams;
+  const [sp, productCount] = await Promise.all([searchParams, getModelProductCount(model.id)]);
+  // an empty listing (no visible products for the model) must not be indexed — it is left out of the sitemap too
+  const noindex = hasListingParams(sp) || productCount === 0;
   // Supplier models may have no year range or body — keep the descriptor tidy when they are empty.
   const spec = [modelYears(model), model.body].filter(Boolean).join(", ");
   return {
@@ -57,7 +59,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
       `Запчастини для ${make.name} ${model.name}${spec ? ` (${spec})` : ""}: підбір за моделлю, перевірка за VIN, доставка по Україні за 1–3 дні.`,
     ),
     alternates: { canonical: `/avto/${make.slug}/${model.slug}` },
-    ...(hasListingParams(sp) ? { robots: { index: false, follow: true } } : {}),
+    ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

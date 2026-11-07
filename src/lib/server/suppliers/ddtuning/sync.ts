@@ -793,6 +793,7 @@ async function buildAllProducts(db: Db, run: SyncRunDoc, ctx: BuildContext, regi
         supplier: built.supplier,
         local: prev?.local,
         updatedAt: ctx.now,
+        previous: prev,
       });
       return doc;
     });
@@ -1038,6 +1039,7 @@ async function createRebuilder(db: Db): Promise<Rebuilder> {
         supplier: { ...built.supplier, syncedAt: doc.supplier.syncedAt },
         local: options.keepLocal && doc.local && Object.keys(doc.local).length ? doc.local : undefined,
         updatedAt: now,
+        previous: doc,
       });
       next.createdAt = doc.createdAt;
       return next;

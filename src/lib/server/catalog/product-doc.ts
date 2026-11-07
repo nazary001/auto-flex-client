@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { Product, StockStatus } from "@/lib/types";
 import { fold, normalizeCode } from "@/lib/slug";
 import type { ProductDoc, ProductLocal, ProductSource, SupplierItem } from "@/lib/server/db/collections";
@@ -41,7 +42,28 @@ export function buildSearchText(product: Product, skus: string[]): string {
   );
 }
 
-const INTERNAL_KEYS = new Set(["_id", "source", "hidden", "retired", "stockRank", "search", "skus", "supplier", "local", "updatedAt"]);
+const INTERNAL_KEYS = new Set(["_id", "source", "hidden", "retired", "stockRank", "search", "skus", "supplier", "local", "updatedAt", "contentHash"]);
+
+/** Product fields the storefront never shows: changing them must not move the sitemap's <lastmod> */
+const NOT_SHOWN = new Set(["popularity", "createdAt"]);
+
+/** JSON with sorted keys (undefined dropped), so equal products always hash equally */
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, v]) => v !== undefined)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    return `{${entries.map(([k, v]) => `${JSON.stringify(k)}:${stableJson(v)}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+/** Hash of everything the product page shows: price, stock, photos, texts, specs, fitment, rating… */
+export function productContentHash(product: Product): string {
+  const shown = Object.fromEntries(Object.entries(product).filter(([key]) => !NOT_SHOWN.has(key)));
+  return createHash("sha1").update(stableJson(shown)).digest("base64url");
+}
 
 export function docToProduct(doc: ProductDoc): Product {
   const out: Record<string, unknown> = { id: doc._id };
@@ -60,20 +82,35 @@ export interface ProductDocMeta {
   supplier?: ProductDoc["supplier"];
   local?: ProductLocal;
   updatedAt?: string;
+  /**
+   * The stored version this document replaces. When the shown content and the visibility are the same,
+   * its `updatedAt` is kept: the nightly sync rewrites every product, but the sitemap's <lastmod>
+   * must move only when the page really changed (Google ignores lastmod that is always "now").
+   */
+  previous?: Partial<Pick<ProductDoc, "contentHash" | "updatedAt" | "hidden" | "retired">>;
 }
 
 export function productToDoc(product: Product, meta: ProductDocMeta): ProductDoc {
   const { id, ...rest } = product;
   const skus = meta.skus ?? [product.sku];
+  const hidden = meta.hidden ?? false;
+  const contentHash = productContentHash(product);
+  const previous = meta.previous;
+  const unchanged =
+    previous?.updatedAt !== undefined &&
+    previous.contentHash === contentHash &&
+    Boolean(previous.hidden) === hidden &&
+    Boolean(previous.retired) === Boolean(meta.retired);
   const doc: ProductDoc = {
     _id: id,
     ...rest,
     source: meta.source,
-    hidden: meta.hidden ?? false,
+    hidden,
     stockRank: stockRankOf(product.stock),
     search: buildSearchText(product, skus),
     skus,
-    updatedAt: meta.updatedAt ?? new Date().toISOString(),
+    contentHash,
+    updatedAt: unchanged ? previous.updatedAt! : (meta.updatedAt ?? new Date().toISOString()),
   };
   if (meta.retired) doc.retired = true;
   if (meta.supplier) doc.supplier = meta.supplier;

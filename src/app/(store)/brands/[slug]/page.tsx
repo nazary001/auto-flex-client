@@ -27,14 +27,16 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const brand = await getBrand(slug);
   if (!brand) return { title: "Виробника не знайдено" };
 
-  const sp = await searchParams;
+  const [sp, productCount] = await Promise.all([searchParams, getBrandProductCount(brand.id)]);
+  // an empty listing (no visible products for the brand) must not be indexed — it is left out of the sitemap too
+  const noindex = hasListingParams(sp) || productCount === 0;
   return {
     title: `Запчастини ${brand.name}`,
     description: clampDescription(
       `Запчастини ${brand.name} (${brand.country}) в TuningWorld: ${brand.description}`,
     ),
     alternates: { canonical: `/brands/${brand.slug}` },
-    ...(hasListingParams(sp) ? { robots: { index: false, follow: true } } : {}),
+    ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
 }
 

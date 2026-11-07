@@ -1,6 +1,17 @@
 import type { MetadataRoute } from "next";
 import { articles } from "@/data/articles";
-import { catalogLastSyncAt, countProducts, getBrands, getCategories, getMakes, getModels, listProductSlugs } from "@/lib/catalog";
+import {
+  catalogLastSyncAt,
+  countProducts,
+  getBrandProductCount,
+  getBrands,
+  getCategories,
+  getMakeProductCount,
+  getMakes,
+  getModelProductCount,
+  getModels,
+  listProductSlugs,
+} from "@/lib/catalog";
 import { site } from "@/lib/site";
 import { PRODUCTS_PER_SITEMAP, sitemapCount } from "@/lib/sitemap";
 
@@ -72,19 +83,26 @@ async function taxonomySitemap(): Promise<MetadataRoute.Sitemap> {
     }),
   );
 
+  // Makes, models and brands with no visible products render an empty listing (a soft 404 for Google,
+  // and noindex on the page itself) — they stay out of the sitemap until the supplier lists products again.
   const vehicleGroups = await Promise.all(
     makes.map(async (make): Promise<Entry[]> => {
+      if ((await getMakeProductCount(make.id)) === 0) return [];
       const models = await getModels(make.id);
+      const counts = await Promise.all(models.map((model) => getModelProductCount(model.id)));
       return [
         dated({ url: url(`/avto/${make.slug}`), changeFrequency: "weekly", priority: 0.6 }),
-        ...models.map((model) => dated({ url: url(`/avto/${make.slug}/${model.slug}`), changeFrequency: "weekly", priority: 0.5 })),
+        ...models
+          .filter((_, i) => counts[i] > 0)
+          .map((model) => dated({ url: url(`/avto/${make.slug}/${model.slug}`), changeFrequency: "weekly", priority: 0.5 })),
       ];
     }),
   );
 
-  const brandEntries: Entry[] = brands.map((brand) =>
-    dated({ url: url(`/brands/${brand.slug}`), changeFrequency: "weekly", priority: 0.5 }),
-  );
+  const brandCounts = await Promise.all(brands.map((brand) => getBrandProductCount(brand.id)));
+  const brandEntries: Entry[] = brands
+    .filter((_, i) => brandCounts[i] > 0)
+    .map((brand) => dated({ url: url(`/brands/${brand.slug}`), changeFrequency: "weekly", priority: 0.5 }));
 
   const articleEntries: Entry[] = articles.map((article) => ({
     url: url(`/blog/${article.slug}`),
